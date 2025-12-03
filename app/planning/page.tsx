@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { format, isSameDay, startOfWeek, addDays, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
+import { MOCK_COURSES } from "../../lib/scheduleData";
+import type { Course as CourseType } from "../../lib/types";
 
 type ViewMode = "Jour" | "Semaine" | "Mois";
 
+// Interface locale pour adapter CourseType au format utilisé dans le composant
 interface Course {
   id: string;
   title: string;
@@ -11,12 +16,18 @@ interface Course {
   tdGroup?: string;
   teacher: string;
   room: string;
-  startTime: string;
-  endTime: string;
-  date?: string;
-  color: string;
+  startTime: string; // Format HH:MM pour l'affichage
+  endTime: string; // Format HH:MM pour l'affichage
+  date: Date; // Date réelle
+  color: string; // Classe Tailwind complète avec border
+  colorTailwind: string; // Classe Tailwind de base (bg-*)
   moodleLink?: string;
   courseRef?: string;
+  homework?: {
+    task: string;
+    isDone: boolean;
+    deadline: string | null;
+  }[];
 }
 
 interface WeekCourse {
@@ -29,66 +40,64 @@ interface WeekCourse {
   }[];
 }
 
-// Cours pour la vue Jour (Vendredi 14)
-const dayCourses: Course[] = [
-  {
-    id: "1",
-    title: "Ergonomie",
-    fullTitle: "Ergonomie et Navigation",
-    tdGroup: "TD001",
-    teacher: "Bertrand Cochet",
-    room: "D.413",
-    startTime: "09:00",
-    endTime: "12:00",
-    date: "14 nov 25",
-    color: "bg-pink-50 border-pink-200",
-    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
-    courseRef: "53UCB01",
-  },
-  {
-    id: "2",
-    title: "Gestion des situations orales",
-    fullTitle: "Gestion des situations orales",
-    teacher: "M. Fontana",
-    room: "D.413",
-    startTime: "13:00",
-    endTime: "16:00",
-    date: "14 nov 25",
-    color: "bg-indigo-50 border-indigo-200",
-    moodleLink: "Cours : Gestion des situations orales | Moodle UL2",
-    courseRef: "53UCB02",
-  },
-];
+// Constantes de la grille
+const PIXEL_PER_HOUR = 60; // 60px pour chaque heure (échelle)
+const HOURS = Array.from({ length: 12 }, (_, i) => 8 + i); // 08h00 à 19h00
+const INITIAL_DATE = new Date("2025-11-14T00:00:00"); // Vendredi 14 Novembre 2025
 
-// Cours pour la vue Mois (Décembre)
-const monthCourses: Record<string, Course[]> = {
-  "05": [
-    {
-      id: "m1",
-      title: "Cours 1",
-      fullTitle: "Cours 1",
-      teacher: "Alexandra Duma",
-      room: "D.309",
-      startTime: "09:00",
-      endTime: "12:00",
-      date: "05 déc 25",
-      color: "bg-pink-50 border-pink-200",
-      moodleLink: "Cours : Cours 1 | Moodle UL2",
-      courseRef: "53UCB03",
-    },
-    {
-      id: "m2",
-      title: "Cours 2",
-      teacher: "Alexandra Duma",
-      room: "D.309",
-      startTime: "13:00",
-      endTime: "16:00",
-      color: "bg-pink-50 border-pink-200",
-    },
-  ],
+// Fonction utilitaire pour comparer les dates
+const isSameDayDate = (date1: Date, date2: Date): boolean => {
+  return isSameDay(date1, date2);
 };
 
-// Cours pour la vue Semaine
+// Générer les dates de la semaine (Lundi à Vendredi)
+const getWeekDates = (date: Date): Date[] => {
+  const monday = startOfWeek(date, { weekStartsOn: 1 }); // Lundi comme premier jour
+  return Array.from({ length: 5 }, (_, i) => addDays(monday, i));
+};
+
+// Convertir MOCK_COURSES en format Course utilisé par le composant
+const convertCourseToLocalFormat = (course: CourseType): Course => {
+  const startDate = parseISO(course.startTime);
+  const endDate = parseISO(course.endTime);
+  
+  // Extraire l'heure au format HH:MM
+  const startTime = format(startDate, "HH:mm");
+  const endTime = format(endDate, "HH:mm");
+  
+  // Créer la classe color complète avec border
+  // Mapper les couleurs Tailwind aux classes de bordure correspondantes
+  const colorMap: Record<string, string> = {
+    "bg-lime-100": "bg-lime-100 border-lime-200",
+    "bg-orange-100": "bg-orange-100 border-orange-200",
+    "bg-yellow-100": "bg-yellow-100 border-yellow-200",
+    "bg-red-100": "bg-red-100 border-red-200",
+    "bg-blue-100": "bg-blue-100 border-blue-200",
+    "bg-purple-100": "bg-purple-100 border-purple-200",
+  };
+  
+  const colorClass = colorMap[course.colorTailwind] || `${course.colorTailwind} border-gray-200`;
+  
+  return {
+    id: course.id,
+    title: course.title,
+    tdGroup: course.tdGroup,
+    teacher: course.professor,
+    room: course.room,
+    startTime,
+    endTime,
+    date: startDate,
+    color: colorClass,
+    colorTailwind: course.colorTailwind, // Conserver la couleur de base
+    moodleLink: course.moodleUrl,
+    homework: course.homework,
+  };
+};
+
+// Convertir tous les cours MOCK_COURSES
+const allCoursesData: Course[] = MOCK_COURSES.map(convertCourseToLocalFormat);
+
+// Cours pour la vue Semaine (structure existante)
 const weekCourses: WeekCourse[] = [
   {
     day: "L",
@@ -149,56 +158,8 @@ const timeSlots = [
 // Heures principales pour la vue Semaine (sans minutes)
 const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
-const weekDays = [
-  { label: "L", date: "10" },
-  { label: "M", date: "11" },
-  { label: "M", date: "12" },
-  { label: "J", date: "13" },
-  { label: "V", date: "14" },
-];
-
-// Résultats de recherche simulés
-const searchResults: Course[] = [
-  {
-    id: "search-1",
-    title: "Ergonomie",
-    fullTitle: "Ergonomie et Navigation - TD001",
-    teacher: "Bertrand Cochet",
-    room: "D.413",
-    startTime: "09:00",
-    endTime: "12:00",
-    date: "14 nov",
-    color: "bg-pink-50 border-pink-200",
-    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
-    courseRef: "53UCB01",
-  },
-  {
-    id: "search-2",
-    title: "Ergonomie",
-    fullTitle: "Ergonomie et Navigation - TD001",
-    teacher: "Bertrand Cochet",
-    room: "D.413",
-    startTime: "13:00",
-    endTime: "16:00",
-    date: "3 déc",
-    color: "bg-pink-50 border-pink-200",
-    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
-    courseRef: "53UCB01",
-  },
-  {
-    id: "search-3",
-    title: "Ergonomie",
-    fullTitle: "Ergonomie et Navigation - TD001",
-    teacher: "Bertrand Cochet",
-    room: "D.413",
-    startTime: "13:00",
-    endTime: "16:00",
-    date: "9 déc",
-    color: "bg-pink-50 border-pink-200",
-    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
-    courseRef: "53UCB01",
-  },
-];
+// Résultats de recherche - utiliser MOCK_COURSES convertis
+const searchResults: Course[] = allCoursesData;
 
 export default function PlanningPage() {
   const [mode, setMode] = useState<ViewMode>("Jour");
@@ -206,6 +167,7 @@ export default function PlanningPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 11, 1)); // Décembre 2024
   const [selectedDay, setSelectedDay] = useState("05");
+  const [selectedDate, setSelectedDate] = useState<Date>(INITIAL_DATE);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isSheetExpanded, setIsSheetExpanded] = useState(false);
@@ -216,31 +178,42 @@ export default function PlanningPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Liste de tous les cours pour la navigation
-  const getAllCourses = (): Course[] => {
-    const allCourses: Course[] = [...dayCourses];
-    // Ajouter les cours du mois
-    Object.values(monthCourses).forEach((courses) => {
-      allCourses.push(...courses);
-    });
-    return allCourses;
+
+  // Filtrer les cours pour la date sélectionnée
+  const filterCourses = (date: Date): Course[] => {
+    return allCoursesData.filter((course) => isSameDayDate(course.date, date));
   };
 
-  const PIXEL_PER_HOUR = 60;
+  // Obtenir les cours du jour sélectionné
+  const dayCourses = filterCourses(selectedDate);
 
+  // Liste de tous les cours pour la navigation
+  const getAllCourses = (): Course[] => {
+    return allCoursesData;
+  };
+
+  // Convertir une heure HH:MM en minutes depuis minuit
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
   };
 
+  // Calculer la position et la hauteur d'un cours en pixels
   const getCoursePosition = (startTime: string, endTime: string) => {
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
-    const dayStart = timeToMinutes("08:00");
+    const dayStartMinutes = timeToMinutes("08:00"); // 8h00 = 480 minutes
     
-    const topPixels = ((startMinutes - dayStart) / 60) * PIXEL_PER_HOUR;
-    const heightPixels = ((endMinutes - startMinutes) / 60) * PIXEL_PER_HOUR;
+    // Calculer la position top en pixels
+    // top = (startHour - 8) * PIXEL_PER_HOUR + (startMinutes / 60) * PIXEL_PER_HOUR
+    const startHour = Math.floor(startMinutes / 60);
+    const startMin = startMinutes % 60;
+    const topPixels = (startHour - 8) * PIXEL_PER_HOUR + (startMin / 60) * PIXEL_PER_HOUR;
+    
+    // Calculer la hauteur en pixels
+    // height = (durationInMinutes / 60) * PIXEL_PER_HOUR
+    const durationInMinutes = endMinutes - startMinutes;
+    const heightPixels = (durationInMinutes / 60) * PIXEL_PER_HOUR;
 
     return { 
       top: `${topPixels}px`, 
@@ -311,12 +284,11 @@ export default function PlanningPage() {
   };
 
   const getMonthName = () => {
-    return currentMonth.toLocaleDateString("fr-FR", { month: "long" });
+    return format(currentMonth, "MMMM", { locale: fr });
   };
 
   // Fonction pour extraire la couleur de fond Tailwind
   const getBackgroundColor = (colorClass: string): string => {
-    // Extraire la classe bg-* de la chaîne
     const match = colorClass.match(/bg-[\w-]+/);
     return match ? match[0] : "bg-pink-50";
   };
@@ -434,6 +406,9 @@ export default function PlanningPage() {
         course.teacher.toLowerCase().includes(query)
     );
   };
+
+  // Obtenir les dates de la semaine pour le DateNavigator
+  const weekDates = getWeekDates(selectedDate);
 
   // Fermer le dropdown si on clique en dehors
   useEffect(() => {
@@ -582,12 +557,12 @@ export default function PlanningPage() {
                           setIsSearching(false);
                           setSearchQuery("");
                         }}
-                        className={`${course.color} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow active:scale-95`}
+                        className={`${course.colorTailwind} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow active:scale-95`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           {/* Date/Mois à gauche */}
                           <div className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                            {course.date}
+                            {format(course.date, "d MMM", { locale: fr })}
                           </div>
                           {/* Titre du cours au centre */}
                           <div className="flex-1 text-center px-2">
@@ -622,40 +597,11 @@ export default function PlanningPage() {
       {!isSearching && (
         <div className="pt-16">
           {/* Ligne de Contrôle - Change selon le mode */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-          {/* Gauche : Icône calendrier + Date */}
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-gray-700"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span className="font-bold text-gray-900">
-              {mode === "Jour"
-                ? "Vendredi 14 Novembre"
-                : mode === "Semaine"
-                ? "10 - 14 novembre"
-                : getMonthName()}
-            </span>
-          </div>
-
-          {/* Droite : Menu déroulant de sélection de mode */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-pink-100 hover:bg-pink-200 rounded-md transition-colors"
-            >
-              <span className="text-sm font-medium text-pink-700">{mode}</span>
+          <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+            {/* Gauche : Icône calendrier + Date */}
+            <div className="flex items-center gap-2">
               <svg
-                className={`w-4 h-4 text-pink-700 transition-transform ${
-                  isDropdownOpen ? "rotate-180" : ""
-                }`}
+                className="w-5 h-5 text-gray-700"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -663,366 +609,410 @@ export default function PlanningPage() {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path d="M19 9l-7 7-7-7"></path>
+                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
-            </button>
+              <span className="font-bold text-gray-900">
+                {mode === "Jour"
+                  ? format(selectedDate, "EEEE d MMMM", { locale: fr })
+                  : mode === "Semaine"
+                  ? `${format(weekDates[0], "d", { locale: fr })} - ${format(weekDates[4], "d MMMM", { locale: fr })}`
+                  : getMonthName()}
+              </span>
+            </div>
 
-            {/* Menu déroulant */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                <div className="py-1">
-                  <button
-                    onClick={() => handleModeChange("Jour")}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
-                      mode === "Jour"
-                        ? "bg-pink-100 text-pink-700 font-medium"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    Jour
-                  </button>
-                  <button
-                    onClick={() => handleModeChange("Semaine")}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
-                      mode === "Semaine"
-                        ? "bg-pink-100 text-pink-700 font-medium"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    Semaine
-                  </button>
-                  <button
-                    onClick={() => handleModeChange("Mois")}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
-                      mode === "Mois"
-                        ? "bg-pink-100 text-pink-700 font-medium"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    Mois
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sélecteur de Jour/Date - Identique dans les deux vues */}
-        <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
-          {weekDays.map((day, index) => {
-            const isActive = day.date === "14";
-            return (
-              <div
-                key={index}
-                className={`flex flex-col items-center ${
-                  isActive ? "bg-red-500 text-white" : "text-gray-500"
-                } rounded-lg px-3 py-2 min-w-[40px]`}
+            {/* Droite : Menu déroulant de sélection de mode */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-pink-100 hover:bg-pink-200 rounded-md transition-colors"
               >
-                <span
-                  className={`text-sm font-medium ${
-                    isActive ? "text-white" : "text-gray-700"
+                <span className="text-sm font-medium text-pink-700">{mode}</span>
+                <svg
+                  className={`w-4 h-4 text-pink-700 transition-transform ${
+                    isDropdownOpen ? "rotate-180" : ""
                   }`}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  {day.label}
-                </span>
-                <span
-                  className={`text-xs mt-1 ${
-                    isActive ? "text-white" : "text-gray-500"
-                  }`}
-                >
-                  {day.date}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                  <path d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
 
-        {/* Corps Principal - Trois vues différentes */}
-        {mode === "Jour" && (
-          /* Vue 'Jour' */
-          <div className="relative bg-white">
-            <div className="flex">
-              {/* Colonne des heures */}
-              <div className="w-16 flex-shrink-0 border-r border-gray-200">
-                {timeSlots.map((time) => (
-                  <div key={time} className="h-16 flex items-start justify-end pr-2 pt-1">
-                    <span className="text-xs text-gray-600">
-                      {time.replace(":00", ".00")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Zone des cours */}
-              <div className="flex-1 relative" style={{ minHeight: `${((timeToMinutes("19:00") - timeToMinutes("08:00")) / 60) * PIXEL_PER_HOUR}px` }}>
-                {/* Lignes horaires */}
-                {timeSlots.map((time) => {
-                  const timeMinutes = timeToMinutes(time);
-                  const dayStart = timeToMinutes("08:00");
-                  const topPixels = ((timeMinutes - dayStart) / 60) * PIXEL_PER_HOUR;
-                  return (
-                    <div
-                      key={time}
-                      className="absolute left-0 right-0 border-b border-gray-100"
-                      style={{ top: `${topPixels}px`, height: `${PIXEL_PER_HOUR}px` }}
-                    ></div>
-                  );
-                })}
-
-                {/* Ligne de séparation de midi à 12:30 */}
-                <div
-                  className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
-                  style={{ top: `${((timeToMinutes("12:30") - timeToMinutes("08:00")) / 60) * PIXEL_PER_HOUR}px` }}
-                >
-                  <span className="text-xs font-medium text-white">12:30</span>
-                </div>
-
-                {/* Blocs de cours avec détails */}
-                {dayCourses.map((course) => {
-                  const position = getCoursePosition(
-                    course.startTime,
-                    course.endTime
-                  );
-                  return (
-                    <div
-                      key={course.id}
-                      onClick={() => handleCourseClick(course)}
-                      className={`absolute left-2 right-2 ${course.color} border rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
-                      style={{
-                        top: position.top,
-                        height: position.height,
-                        minHeight: "60px",
-                      }}
+              {/* Menu déroulant */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleModeChange("Jour")}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                        mode === "Jour"
+                          ? "bg-pink-100 text-pink-700 font-medium"
+                          : "text-gray-700"
+                      }`}
                     >
-                      <div className="flex flex-col h-full">
-                        <div className="font-bold text-base text-gray-900 mb-1">
-                          {course.title}
-                        </div>
-                        <div className="text-sm text-gray-700 mb-1">
-                          {course.teacher}
-                        </div>
-                        <div className="text-xs text-gray-600 mb-auto">
-                          {course.startTime.replace(":", ".")} -{" "}
-                          {course.endTime.replace(":", ".")}
-                        </div>
-                        <div className="text-xs text-gray-600 mt-auto text-right font-medium">
-                          {course.room}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      Jour
+                    </button>
+                    <button
+                      onClick={() => handleModeChange("Semaine")}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                        mode === "Semaine"
+                          ? "bg-pink-100 text-pink-700 font-medium"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      Semaine
+                    </button>
+                    <button
+                      onClick={() => handleModeChange("Mois")}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                        mode === "Mois"
+                          ? "bg-pink-100 text-pink-700 font-medium"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      Mois
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-        {mode === "Semaine" && (
-          /* Vue 'Semaine' */
-          <div className="relative bg-white">
-            <div className="flex">
-              {/* Colonne des heures (sans minutes) */}
-              <div className="w-12 flex-shrink-0 border-r border-gray-200">
-                {weekTimeSlots.map((hour) => (
-                  <div
-                    key={hour}
-                    className="h-16 flex items-start justify-end pr-2 pt-1"
-                  >
-                    <span className="text-xs text-gray-600">{hour}h</span>
-                  </div>
-                ))}
-              </div>
 
-              {/* Grille des jours */}
-              <div className="flex-1 flex">
-                {weekCourses.map((dayData, dayIndex) => (
-                  <div
-                    key={dayIndex}
-                    className="flex-1 relative border-r border-gray-200 last:border-r-0"
-                    style={{ minHeight: "704px" }}
+          {/* DateNavigator - Sélecteur de Jour/Date */}
+          <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
+            {weekDates.map((date, index) => {
+              const isActive = isSameDayDate(date, selectedDate);
+              const dayLabel = format(date, "EEEEE", { locale: fr }); // L, M, M, J, V
+              const dayNumber = format(date, "d", { locale: fr });
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => setSelectedDate(date)}
+                  className={`flex flex-col items-center ${
+                    isActive ? "bg-red-500 text-white" : "text-gray-500"
+                  } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
+                >
+                  <span
+                    className={`text-sm font-medium ${
+                      isActive ? "text-white" : "text-gray-700"
+                    }`}
                   >
-                    {/* Lignes horaires */}
-                    {weekTimeSlots.map((hour) => (
+                    {dayLabel}
+                  </span>
+                  <span
+                    className={`text-xs mt-1 ${
+                      isActive ? "text-white" : "text-gray-500"
+                    }`}
+                  >
+                    {dayNumber}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Corps Principal - Trois vues différentes */}
+          {mode === "Jour" && (
+            /* Vue 'Jour' - Grille horaire verticale avec blocs dimensionnés dynamiquement */
+            <div className="relative bg-white">
+              <div className="flex">
+                {/* Colonne des heures */}
+                <div className="w-16 flex-shrink-0 border-r border-gray-200">
+                  {HOURS.map((hour) => (
+                    <div 
+                      key={hour} 
+                      className="flex items-start justify-end pr-2 pt-1"
+                      style={{ height: `${PIXEL_PER_HOUR}px` }}
+                    >
+                      <span className="text-xs text-gray-600">
+                        {hour.toString().padStart(2, "0")}.00
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Zone des cours - Positionnement absolu */}
+                <div 
+                  className="flex-1 relative" 
+                  style={{ minHeight: `${HOURS.length * PIXEL_PER_HOUR}px` }}
+                >
+                  {/* Lignes horaires */}
+                  {HOURS.map((hour) => {
+                    const topPixels = (hour - 8) * PIXEL_PER_HOUR;
+                    return (
                       <div
                         key={hour}
-                        className="h-16 border-b border-gray-100"
+                        className="absolute left-0 right-0 border-b border-gray-100"
+                        style={{ 
+                          top: `${topPixels}px`, 
+                          height: `${PIXEL_PER_HOUR}px` 
+                        }}
                       ></div>
-                    ))}
-
-                    {/* Barres de cours colorées (sans texte) */}
-                    {dayData.courses.map((course, courseIndex) => {
-                      const position = getCoursePosition(
-                        course.startTime,
-                        course.endTime
-                      );
-                      // Créer un objet Course à partir des données de la semaine
-                      const weekCourse: Course = {
-                        id: `${dayData.date}-${courseIndex}`,
-                        title: `Cours ${dayData.day} ${dayData.date}`,
-                        fullTitle: `Cours ${dayData.day} ${dayData.date}`,
-                        teacher: "Professeur",
-                        room: "D.413",
-                        startTime: course.startTime,
-                        endTime: course.endTime,
-                        date: `${dayData.date} nov 25`,
-                        color: course.color,
-                        moodleLink: `Cours : ${dayData.day} ${dayData.date} | Moodle UL2`,
-                        courseRef: "53UCB01",
-                      };
-                      return (
-                        <div
-                          key={courseIndex}
-                          onClick={() => handleCourseClick(weekCourse)}
-                          className={`absolute left-1 right-1 ${course.color} rounded cursor-pointer hover:opacity-80 transition-opacity`}
-                          style={{
-                            top: position.top,
-                            height: position.height,
-                            minHeight: "20px",
-                          }}
-                        ></div>
-                      );
-                    })}
-
-                    {/* Affichage de la salle D.413 en bas de la colonne Vendredi à 17h */}
-                    {dayData.date === "14" && (
-                      <div
-                        className="absolute left-1 right-1 text-xs text-gray-600 text-center font-medium"
-                        style={{ top: "81.8%" }}
-                      >
-                        D.413
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        {mode === "Mois" && (
-          /* Vue 'Mois' */
-          <div className="bg-white">
-            {/* Grille de calendrier */}
-            <div className="px-4 py-4">
-              {/* En-têtes des jours */}
-              <div className="grid grid-cols-5 gap-1 mb-2">
-                {["L", "M", "M", "J", "V"].map((day, index) => (
-                  <div
-                    key={index}
-                    className="text-center text-sm font-semibold text-gray-700 py-2"
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Grille des dates */}
-              <div className="grid grid-cols-5 gap-1">
-                {generateMonthCalendar().map((week, weekIndex) =>
-                  week.map((date, dayIndex) => {
-                    if (date === null) {
-                      return (
-                        <div
-                          key={`${weekIndex}-${dayIndex}`}
-                          className="aspect-square"
-                        ></div>
-                      );
-                    }
-                    const isSelected = date === selectedDay;
-                    return (
-                      <button
-                        key={`${weekIndex}-${dayIndex}`}
-                        onClick={() => setSelectedDay(date)}
-                        className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
-                          isSelected
-                            ? "bg-red-500 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        {date}
-                      </button>
                     );
-                  })
-                )}
-              </div>
-            </div>
+                  })}
 
-            {/* Liste des cours du jour sélectionné */}
-            {monthCourses[selectedDay] && monthCourses[selectedDay].length > 0 && (
-              <div className="px-4 py-4 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Vendredi {selectedDay} Décembre
-                </h3>
-                <div className="space-y-3">
-                  {monthCourses[selectedDay].map((course) => (
-                    <div
-                      key={course.id}
-                      onClick={() => handleCourseClick(course)}
-                      className={`${course.color} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
-                    >
-                      <div className="flex flex-col">
-                        <div className="font-bold text-base text-gray-900 mb-1">
-                          {course.title}
-                        </div>
-                        <div className="text-sm text-gray-700 mb-1">
-                          {course.teacher}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">
+                  {/* Ligne de séparation de midi à 12:30 - Positionnée à 4.5 * PIXEL_PER_HOUR depuis 8h00 */}
+                  <div
+                    className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
+                    style={{ top: `${4.5 * PIXEL_PER_HOUR}px` }}
+                  >
+                    <span className="text-xs font-medium text-white">12:30</span>
+                  </div>
+
+                  {/* Blocs de cours avec détails - Positionnement dynamique */}
+                  {dayCourses.map((course) => {
+                    const position = getCoursePosition(
+                      course.startTime,
+                      course.endTime
+                    );
+                    return (
+                      <div
+                        key={course.id}
+                        onClick={() => handleCourseClick(course)}
+                        className={`absolute left-2 right-2 ${course.colorTailwind} border rounded-xl shadow-xl cursor-pointer hover:shadow-2xl transition-all`}
+                        style={{
+                          top: position.top,
+                          height: position.height,
+                          minHeight: "60px",
+                        }}
+                      >
+                        <div className="flex flex-col h-full p-3">
+                          <div className="font-bold text-base text-gray-900 mb-1">
+                            {course.title}
+                          </div>
+                          <div className="text-sm text-gray-700 mb-1">
+                            {course.teacher}
+                          </div>
+                          <div className="text-xs text-gray-600 mb-auto">
                             {course.startTime.replace(":", ".")} -{" "}
                             {course.endTime.replace(":", ".")}
-                          </span>
-                          <span className="text-xs text-gray-600 font-medium">
+                          </div>
+                          <div className="text-xs text-gray-600 mt-auto text-right font-medium">
                             {course.room}
-                          </span>
+                          </div>
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+          {mode === "Semaine" && (
+            /* Vue 'Semaine' */
+            <div className="relative bg-white">
+              <div className="flex">
+                {/* Colonne des heures (sans minutes) */}
+                <div className="w-12 flex-shrink-0 border-r border-gray-200">
+                  {weekTimeSlots.map((hour) => (
+                    <div
+                      key={hour}
+                      className="h-16 flex items-start justify-end pr-2 pt-1"
+                    >
+                      <span className="text-xs text-gray-600">{hour}h</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Grille des jours */}
+                <div className="flex-1 flex">
+                  {weekCourses.map((dayData, dayIndex) => (
+                    <div
+                      key={dayIndex}
+                      className="flex-1 relative border-r border-gray-200 last:border-r-0"
+                      style={{ minHeight: "704px" }}
+                    >
+                      {/* Lignes horaires */}
+                      {weekTimeSlots.map((hour) => (
+                        <div
+                          key={hour}
+                          className="h-16 border-b border-gray-100"
+                        ></div>
+                      ))}
+
+                      {/* Barres de cours colorées (sans texte) */}
+                      {dayData.courses.map((course, courseIndex) => {
+                        const position = getCoursePosition(
+                          course.startTime,
+                          course.endTime
+                        );
+                        // Créer un objet Course à partir des données de la semaine
+                        const weekDate = weekDates[dayIndex];
+                        const weekCourse: Course = {
+                          id: `${dayData.date}-${courseIndex}`,
+                          title: `Cours ${dayData.day} ${dayData.date}`,
+                          fullTitle: `Cours ${dayData.day} ${dayData.date}`,
+                          teacher: "Professeur",
+                          room: "D.413",
+                          startTime: course.startTime,
+                          endTime: course.endTime,
+                          date: weekDate,
+                          color: course.color,
+                          colorTailwind: course.color,
+                          moodleLink: `Cours : ${dayData.day} ${dayData.date} | Moodle UL2`,
+                          courseRef: "53UCB01",
+                        };
+                        return (
+                          <div
+                            key={courseIndex}
+                            onClick={() => handleCourseClick(weekCourse)}
+                            className={`absolute left-1 right-1 ${course.color} rounded cursor-pointer hover:opacity-80 transition-opacity`}
+                            style={{
+                              top: position.top,
+                              height: position.height,
+                              minHeight: "20px",
+                            }}
+                          ></div>
+                        );
+                      })}
+
+                      {/* Affichage de la salle D.413 en bas de la colonne Vendredi à 17h */}
+                      {dayData.date === "14" && (
+                        <div
+                          className="absolute left-1 right-1 text-xs text-gray-600 text-center font-medium"
+                          style={{ top: "81.8%" }}
+                        >
+                          D.413
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Navigation mois précédent/suivant */}
-            <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 bg-white">
-              <button
-                onClick={() => navigateMonth("prev")}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label="Mois précédent"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M15 19l-7-7 7-7"></path>
-                </svg>
-              </button>
-              <span className="text-sm font-medium text-gray-700">
-                {getMonthName()}
-              </span>
-              <button
-                onClick={() => navigateMonth("next")}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label="Mois suivant"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M9 5l7 7-7 7"></path>
-                </svg>
-              </button>
             </div>
-          </div>
-        )}
+          )}
+          {mode === "Mois" && (
+            /* Vue 'Mois' */
+            <div className="bg-white">
+              {/* Grille de calendrier */}
+              <div className="px-4 py-4">
+                {/* En-têtes des jours */}
+                <div className="grid grid-cols-5 gap-1 mb-2">
+                  {["L", "M", "M", "J", "V"].map((day, index) => (
+                    <div
+                      key={index}
+                      className="text-center text-sm font-semibold text-gray-700 py-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Grille des dates */}
+                <div className="grid grid-cols-5 gap-1">
+                  {generateMonthCalendar().map((week, weekIndex) =>
+                    week.map((date, dayIndex) => {
+                      if (date === null) {
+                        return (
+                          <div
+                            key={`${weekIndex}-${dayIndex}`}
+                            className="aspect-square"
+                          ></div>
+                        );
+                      }
+                      const dateObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), parseInt(date));
+                      const isSelected = isSameDayDate(dateObj, selectedDate);
+                      return (
+                        <button
+                          key={`${weekIndex}-${dayIndex}`}
+                          onClick={() => setSelectedDate(dateObj)}
+                          className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
+                            isSelected
+                              ? "bg-red-500 text-white"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          {date}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Liste des cours du jour sélectionné */}
+              {dayCourses.length > 0 && (
+                <div className="px-4 py-4 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    {format(selectedDate, "EEEE d MMMM", { locale: fr })}
+                  </h3>
+                  <div className="space-y-3">
+                    {dayCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        onClick={() => handleCourseClick(course)}
+                        className={`${course.colorTailwind} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
+                      >
+                        <div className="flex flex-col">
+                          <div className="font-bold text-base text-gray-900 mb-1">
+                            {course.title}
+                          </div>
+                          <div className="text-sm text-gray-700 mb-1">
+                            {course.teacher}
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600">
+                              {course.startTime.replace(":", ".")} -{" "}
+                              {course.endTime.replace(":", ".")}
+                            </span>
+                            <span className="text-xs text-gray-600 font-medium">
+                              {course.room}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation mois précédent/suivant */}
+              <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 bg-white">
+                <button
+                  onClick={() => navigateMonth("prev")}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  aria-label="Mois précédent"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-700"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
+                <span className="text-sm font-medium text-gray-700">
+                  {getMonthName()}
+                </span>
+                <button
+                  onClick={() => navigateMonth("next")}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  aria-label="Mois suivant"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-700"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1030,7 +1020,7 @@ export default function PlanningPage() {
       {isBottomSheetOpen && selectedCourse && (
         <div
           ref={bottomSheetRef}
-          className={`fixed bottom-0 left-0 right-0 ${getBackgroundColor(selectedCourse.color)} rounded-t-2xl shadow-2xl z-50 ${isSheetExpanded ? "h-[90vh]" : "h-[45vh]"}`}
+          className={`fixed bottom-0 left-0 right-0 ${getBackgroundColor(selectedCourse.colorTailwind)} rounded-t-2xl shadow-2xl z-50 ${isSheetExpanded ? "h-[90vh]" : "h-[45vh]"}`}
           style={{
             transform: `translateY(${currentY}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out, height 0.3s ease-out",
@@ -1083,7 +1073,7 @@ export default function PlanningPage() {
             <div className="mb-4">
               <p className="text-xl font-semibold text-slate-900">
                 {formatTime(selectedCourse.startTime)} - {formatTime(selectedCourse.endTime)}
-                {selectedCourse.date && ` ${selectedCourse.date}`}
+                {` ${format(selectedCourse.date, "d MMM yyyy", { locale: fr })}`}
               </p>
             </div>
 
@@ -1127,33 +1117,30 @@ export default function PlanningPage() {
                     Devoirs pour cette séance :
                   </h3>
                   <div className="space-y-3">
-                    {/* Tâche 1 - cochée */}
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked
-                        readOnly
-                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                      />
-                      <label className="ml-3 text-sm text-gray-700">
-                        Faire la maquette
-                      </label>
-                    </div>
-                    {/* Tâche 2 - non cochée avec badge */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                        />
-                        <label className="ml-3 text-sm text-gray-700">
-                          Prototype
-                        </label>
-                      </div>
-                      <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                        à déposer
-                      </span>
-                    </div>
+                    {selectedCourse.homework && selectedCourse.homework.length > 0 ? (
+                      selectedCourse.homework.map((homework, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={homework.isDone}
+                              readOnly
+                              className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <label className="ml-3 text-sm text-gray-700">
+                              {homework.task}
+                            </label>
+                          </div>
+                          {homework.deadline && !homework.isDone && (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                              {format(parseISO(homework.deadline), "d MMM", { locale: fr })}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">Aucun devoir pour cette séance</p>
+                    )}
                   </div>
                 </div>
 
@@ -1162,17 +1149,17 @@ export default function PlanningPage() {
                   <h3 className="text-lg font-bold text-slate-900 mb-3">
                     Accès au cours sur Moodle
                   </h3>
-                  {selectedCourse.moodleLink && (
+                  {selectedCourse.moodleLink ? (
                     <a
-                      href="#"
+                      href={selectedCourse.moodleLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm text-blue-600 underline hover:text-blue-800 break-words"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        // Ici on pourrait ouvrir le lien Moodle
-                      }}
                     >
                       {selectedCourse.moodleLink}
                     </a>
+                  ) : (
+                    <p className="text-sm text-gray-500">Aucun lien Moodle disponible</p>
                   )}
                 </div>
               </>
@@ -1181,7 +1168,7 @@ export default function PlanningPage() {
 
           {/* Navigation entre les cours - en bas (visible seulement en mode étendu) */}
           {isSheetExpanded && (
-            <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 ${getBackgroundColor(selectedCourse.color)} border-t border-black/10`}>
+            <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 ${getBackgroundColor(selectedCourse.colorTailwind)} border-t border-black/10`}>
               <button
                 onClick={() => navigateCourse("prev")}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 transition-colors"

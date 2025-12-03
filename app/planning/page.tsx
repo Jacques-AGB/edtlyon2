@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { format, isSameDay, startOfWeek, addDays, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { MOCK_COURSES } from "../../lib/scheduleData";
@@ -188,22 +188,66 @@ export default function PlanningPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Filtrer les cours pour la date sélectionnée
-  const filterCourses = (date: Date): Course[] => {
-    return allCoursesData.filter((course) => isSameDayDate(course.date, date));
+  // Fonction utilitaire pour comparer deux dates en ignorant l'heure
+  const isSameDayUtil = (date1: Date, date2: Date): boolean => {
+    const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+    const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+    return d1.getTime() === d2.getTime();
   };
 
-  // Obtenir les cours du jour sélectionné
-  const dayCourses = filterCourses(selectedDate);
+  // Filtrer les cours selon le mode et la date sélectionnée
+  const filterCourses = (
+    mode: ViewMode,
+    allCourses: Course[],
+    selectedDate: Date
+  ): Course[] => {
+    if (mode === "Jour") {
+      return allCourses.filter((course) => {
+        return isSameDayUtil(course.date, selectedDate);
+      });
+    } else if (mode === "Semaine") {
+      // Obtenir les dates de la semaine à partir de selectedDate
+      const weekDates = getWeekDates(selectedDate);
+      return allCourses.filter((course) => {
+        return weekDates.some((day) => isSameDayUtil(course.date, day));
+      });
+    } else if (mode === "Mois") {
+      // Filtrer les cours du mois de selectedDate
+      const selectedMonth = selectedDate.getMonth();
+      const selectedYear = selectedDate.getFullYear();
+      return allCourses.filter((course) => {
+        const courseMonth = course.date.getMonth();
+        const courseYear = course.date.getFullYear();
+        return courseMonth === selectedMonth && courseYear === selectedYear;
+      });
+    }
+    return [];
+  };
 
-  // Filtrer les cours de la semaine (pour la WeekView)
-  const weekCoursesData: Course[] = allCoursesData.filter((course) => {
-    return DAYS_OF_WEEK.some((day) => isSameDayDate(course.date, day));
-  });
+  // Obtenir les cours filtrés de manière dynamique avec useMemo
+  const filteredCourses = useMemo(
+    () => filterCourses(mode, allCoursesData, selectedDate),
+    [mode, selectedDate]
+  );
 
-  // Obtenir l'index du jour de la semaine pour un cours
+  // Obtenir les cours du jour sélectionné (pour DayView)
+  const dayCourses = useMemo(
+    () => filterCourses("Jour", allCoursesData, selectedDate),
+    [selectedDate]
+  );
+
+  // Obtenir les cours de la semaine (pour WeekView) - basé sur selectedDate
+  const weekCoursesData = useMemo(() => {
+    const weekDates = getWeekDates(selectedDate);
+    return allCoursesData.filter((course) => {
+      return weekDates.some((day) => isSameDayUtil(course.date, day));
+    });
+  }, [selectedDate]);
+
+  // Obtenir l'index du jour de la semaine pour un cours (basé sur selectedDate)
   const getDayIndex = (courseDate: Date): number => {
-    return DAYS_OF_WEEK.findIndex((day) => isSameDayDate(courseDate, day));
+    const weekDates = getWeekDates(selectedDate);
+    return weekDates.findIndex((day) => isSameDayUtil(courseDate, day));
   };
 
   // Liste de tous les cours pour la navigation
@@ -846,7 +890,7 @@ export default function PlanningPage() {
                 <div className="flex-1 relative" style={{ height: "720px" }}>
                   {/* Grille des jours - 5 colonnes */}
                   <div className="absolute top-0 left-0 right-0 bottom-0 flex">
-                    {DAYS_OF_WEEK.map((day, dayIndex) => (
+                    {weekDates.map((day, dayIndex) => (
                       <div
                         key={dayIndex}
                         className="flex-1 relative border-r border-gray-200 last:border-r-0"

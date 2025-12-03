@@ -705,6 +705,8 @@ export default function PlanningPage() {
           <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
             {weekDates.map((date, index) => {
               const isActive = isSameDayDate(date, selectedDate);
+              // Le surlignage rouge ne s'applique que en mode "Jour"
+              const shouldHighlight = isActive && mode === "Jour";
               const dayLabel = format(date, "EEEEE", { locale: fr }); // L, M, M, J, V
               const dayNumber = format(date, "d", { locale: fr });
               
@@ -713,19 +715,19 @@ export default function PlanningPage() {
                   key={index}
                   onClick={() => setSelectedDate(date)}
                   className={`flex flex-col items-center ${
-                    isActive ? "bg-red-500 text-white" : "text-gray-500"
+                    shouldHighlight ? "bg-red-500 text-white" : "text-gray-500"
                   } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
                 >
                   <span
                     className={`text-sm font-medium ${
-                      isActive ? "text-white" : "text-gray-700"
+                      shouldHighlight ? "text-white" : "text-gray-700"
                     }`}
                   >
                     {dayLabel}
                   </span>
                   <span
                     className={`text-xs mt-1 ${
-                      isActive ? "text-white" : "text-gray-500"
+                      shouldHighlight ? "text-white" : "text-gray-500"
                     }`}
                   >
                     {dayNumber}
@@ -828,8 +830,6 @@ export default function PlanningPage() {
               <div className="flex">
                 {/* Colonne des heures */}
                 <div className="w-12 flex-shrink-0 border-r border-gray-200">
-                  {/* En-tête vide pour aligner avec les jours */}
-                  <div className="h-8 border-b border-gray-200"></div>
                   {/* Heures - Format compact (8h, 9h, etc.) */}
                   {HOURS.map((hour) => (
                     <div
@@ -844,25 +844,8 @@ export default function PlanningPage() {
 
                 {/* Zone de grille principale */}
                 <div className="flex-1 relative" style={{ height: "720px" }}>
-                  {/* En-tête des jours (L, M, M, J, V) */}
-                  <div className="absolute top-0 left-0 right-0 h-8 border-b border-gray-200 flex">
-                    {DAYS_OF_WEEK.map((day, index) => {
-                      const dayLabel = format(day, "EEEEE", { locale: fr }); // L, M, M, J, V
-                      return (
-                        <div
-                          key={index}
-                          className="flex-1 flex items-center justify-center border-r border-gray-200 last:border-r-0"
-                        >
-                          <span className="text-xs font-semibold text-gray-700">
-                            {dayLabel}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
                   {/* Grille des jours - 5 colonnes */}
-                  <div className="absolute top-8 left-0 right-0 bottom-0 flex">
+                  <div className="absolute top-0 left-0 right-0 bottom-0 flex">
                     {DAYS_OF_WEEK.map((day, dayIndex) => (
                       <div
                         key={dayIndex}
@@ -919,7 +902,7 @@ export default function PlanningPage() {
                   {/* Ligne de séparation de midi à 12:30 - Horizontalement sur toute la largeur */}
                   <div
                     className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
-                    style={{ top: `${8 + 4.5 * PIXEL_PER_HOUR}px` }}
+                    style={{ top: `${4.5 * PIXEL_PER_HOUR}px` }}
                   >
                     <span className="text-xs font-medium text-white">12:30</span>
                   </div>

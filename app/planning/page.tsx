@@ -45,6 +45,15 @@ const PIXEL_PER_HOUR = 60; // 60px pour chaque heure (échelle)
 const HOURS = Array.from({ length: 12 }, (_, i) => 8 + i); // 08h00 à 19h00
 const INITIAL_DATE = new Date("2025-11-14T00:00:00"); // Vendredi 14 Novembre 2025
 
+// Définir les objets Date pour les jours de la semaine à afficher (Lundi 10 au Vendredi 14)
+const DAYS_OF_WEEK = [
+  new Date("2025-11-10T00:00:00"), // Lundi
+  new Date("2025-11-11T00:00:00"), // Mardi
+  new Date("2025-11-12T00:00:00"), // Mercredi
+  new Date("2025-11-13T00:00:00"), // Jeudi
+  new Date("2025-11-14T00:00:00"), // Vendredi
+];
+
 // Fonction utilitaire pour comparer les dates
 const isSameDayDate = (date1: Date, date2: Date): boolean => {
   return isSameDay(date1, date2);
@@ -186,6 +195,16 @@ export default function PlanningPage() {
 
   // Obtenir les cours du jour sélectionné
   const dayCourses = filterCourses(selectedDate);
+
+  // Filtrer les cours de la semaine (pour la WeekView)
+  const weekCoursesData: Course[] = allCoursesData.filter((course) => {
+    return DAYS_OF_WEEK.some((day) => isSameDayDate(course.date, day));
+  });
+
+  // Obtenir l'index du jour de la semaine pour un cours
+  const getDayIndex = (courseDate: Date): number => {
+    return DAYS_OF_WEEK.findIndex((day) => isSameDayDate(courseDate, day));
+  };
 
   // Liste de tous les cours pour la navigation
   const getAllCourses = (): Course[] => {
@@ -804,84 +823,106 @@ export default function PlanningPage() {
             </div>
           )}
           {mode === "Semaine" && (
-            /* Vue 'Semaine' */
+            /* Vue 'Semaine' - Grille horaire hebdomadaire compacte */
             <div className="relative bg-white">
               <div className="flex">
-                {/* Colonne des heures (sans minutes) */}
+                {/* Colonne des heures */}
                 <div className="w-12 flex-shrink-0 border-r border-gray-200">
-                  {weekTimeSlots.map((hour) => (
+                  {/* En-tête vide pour aligner avec les jours */}
+                  <div className="h-8 border-b border-gray-200"></div>
+                  {/* Heures - Format compact (8h, 9h, etc.) */}
+                  {HOURS.map((hour) => (
                     <div
                       key={hour}
-                      className="h-16 flex items-start justify-end pr-2 pt-1"
+                      className="flex items-start justify-end pr-2 pt-1"
+                      style={{ height: `${PIXEL_PER_HOUR}px` }}
                     >
                       <span className="text-xs text-gray-600">{hour}h</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Grille des jours */}
-                <div className="flex-1 flex">
-                  {weekCourses.map((dayData, dayIndex) => (
-                    <div
-                      key={dayIndex}
-                      className="flex-1 relative border-r border-gray-200 last:border-r-0"
-                      style={{ minHeight: "704px" }}
-                    >
-                      {/* Lignes horaires */}
-                      {weekTimeSlots.map((hour) => (
+                {/* Zone de grille principale */}
+                <div className="flex-1 relative" style={{ height: "720px" }}>
+                  {/* En-tête des jours (L, M, M, J, V) */}
+                  <div className="absolute top-0 left-0 right-0 h-8 border-b border-gray-200 flex">
+                    {DAYS_OF_WEEK.map((day, index) => {
+                      const dayLabel = format(day, "EEEEE", { locale: fr }); // L, M, M, J, V
+                      return (
                         <div
-                          key={hour}
-                          className="h-16 border-b border-gray-100"
-                        ></div>
-                      ))}
-
-                      {/* Barres de cours colorées (sans texte) */}
-                      {dayData.courses.map((course, courseIndex) => {
-                        const position = getCoursePosition(
-                          course.startTime,
-                          course.endTime
-                        );
-                        // Créer un objet Course à partir des données de la semaine
-                        const weekDate = weekDates[dayIndex];
-                        const weekCourse: Course = {
-                          id: `${dayData.date}-${courseIndex}`,
-                          title: `Cours ${dayData.day} ${dayData.date}`,
-                          fullTitle: `Cours ${dayData.day} ${dayData.date}`,
-                          teacher: "Professeur",
-                          room: "D.413",
-                          startTime: course.startTime,
-                          endTime: course.endTime,
-                          date: weekDate,
-                          color: course.color,
-                          colorTailwind: course.color,
-                          moodleLink: `Cours : ${dayData.day} ${dayData.date} | Moodle UL2`,
-                          courseRef: "53UCB01",
-                        };
-                        return (
-                          <div
-                            key={courseIndex}
-                            onClick={() => handleCourseClick(weekCourse)}
-                            className={`absolute left-1 right-1 ${course.color} rounded cursor-pointer hover:opacity-80 transition-opacity`}
-                            style={{
-                              top: position.top,
-                              height: position.height,
-                              minHeight: "20px",
-                            }}
-                          ></div>
-                        );
-                      })}
-
-                      {/* Affichage de la salle D.413 en bas de la colonne Vendredi à 17h */}
-                      {dayData.date === "14" && (
-                        <div
-                          className="absolute left-1 right-1 text-xs text-gray-600 text-center font-medium"
-                          style={{ top: "81.8%" }}
+                          key={index}
+                          className="flex-1 flex items-center justify-center border-r border-gray-200 last:border-r-0"
                         >
-                          D.413
+                          <span className="text-xs font-semibold text-gray-700">
+                            {dayLabel}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
+
+                  {/* Grille des jours - 5 colonnes */}
+                  <div className="absolute top-8 left-0 right-0 bottom-0 flex">
+                    {DAYS_OF_WEEK.map((day, dayIndex) => (
+                      <div
+                        key={dayIndex}
+                        className="flex-1 relative border-r border-gray-200 last:border-r-0"
+                        style={{ height: "100%" }}
+                      >
+                        {/* Lignes horaires */}
+                        {HOURS.map((hour) => {
+                          const topPixels = (hour - 8) * PIXEL_PER_HOUR;
+                          return (
+                            <div
+                              key={hour}
+                              className="absolute left-0 right-0 border-b border-gray-100"
+                              style={{
+                                top: `${topPixels}px`,
+                                height: `${PIXEL_PER_HOUR}px`,
+                              }}
+                            ></div>
+                          );
+                        })}
+
+                        {/* Blocs de cours pour ce jour spécifique */}
+                        {weekCoursesData
+                          .filter((course) => {
+                            const courseDayIndex = getDayIndex(course.date);
+                            return courseDayIndex === dayIndex;
+                          })
+                          .map((course) => {
+                            const position = getCoursePosition(
+                              course.startTime,
+                              course.endTime
+                            );
+                            const topPixels = parseFloat(
+                              position.top.replace("px", "")
+                            );
+
+                            return (
+                              <div
+                                key={course.id}
+                                onClick={() => handleCourseClick(course)}
+                                className={`absolute left-1 right-1 ${course.colorTailwind} rounded cursor-pointer hover:opacity-80 transition-opacity z-20`}
+                                style={{
+                                  top: `${topPixels}px`,
+                                  height: position.height,
+                                  minHeight: "20px",
+                                }}
+                              ></div>
+                            );
+                          })}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Ligne de séparation de midi à 12:30 - Horizontalement sur toute la largeur */}
+                  <div
+                    className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
+                    style={{ top: `${8 + 4.5 * PIXEL_PER_HOUR}px` }}
+                  >
+                    <span className="text-xs font-medium text-white">12:30</span>
+                  </div>
                 </div>
               </div>
             </div>

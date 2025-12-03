@@ -24,3 +24,29 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Masquer le logo Next.js en bas à droite */
+[data-nextjs-toast],
+[data-nextjs-toast] *,
+.__next-dev-overlay,
+.__next-dev-overlay *,
+nextjs-portal,
+nextjs-portal * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Masquer les éléments Next.js de développement en bas à droite */
+body > div[style*="position: fixed"][style*="bottom"],
+body > div[style*="position: fixed"][style*="right"],
+body > div[style*="z-index"][style*="9999"],
+svg[viewBox="0 0 40 40"][width="40"][height="40"] {
+  display: none !important;
+}
+
+/* Masquer spécifiquement le logo Next.js SVG */
+svg[viewBox="0 0 40 40"] {
+  display: none !important;
+}

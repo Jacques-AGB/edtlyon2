@@ -28,6 +28,41 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Masquer le logo Next.js en bas à droite
+                function hideNextLogo() {
+                  const svgs = document.querySelectorAll('svg[viewBox="0 0 40 40"][width="40"][height="40"]');
+                  svgs.forEach(svg => {
+                    const parent = svg.closest('div');
+                    if (parent && (parent.style.position === 'fixed' || parent.style.position === 'absolute')) {
+                      parent.style.display = 'none';
+                    }
+                    svg.style.display = 'none';
+                  });
+                  
+                  // Masquer les éléments avec le logo Next.js
+                  const elements = document.querySelectorAll('[data-nextjs-toast], nextjs-portal, .__next-dev-overlay');
+                  elements.forEach(el => {
+                    el.style.display = 'none';
+                  });
+                }
+                
+                // Exécuter immédiatement et après le chargement
+                hideNextLogo();
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', hideNextLogo);
+                }
+                
+                // Observer les changements du DOM pour masquer les nouveaux éléments
+                const observer = new MutationObserver(hideNextLogo);
+                observer.observe(document.body, { childList: true, subtree: true });
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );

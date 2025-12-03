@@ -1,0 +1,1232 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+
+type ViewMode = "Jour" | "Semaine" | "Mois";
+
+interface Course {
+  id: string;
+  title: string;
+  fullTitle?: string;
+  tdGroup?: string;
+  teacher: string;
+  room: string;
+  startTime: string;
+  endTime: string;
+  date?: string;
+  color: string;
+  moodleLink?: string;
+  courseRef?: string;
+}
+
+interface WeekCourse {
+  day: string;
+  date: string;
+  courses: {
+    startTime: string;
+    endTime: string;
+    color: string;
+  }[];
+}
+
+// Cours pour la vue Jour (Vendredi 14)
+const dayCourses: Course[] = [
+  {
+    id: "1",
+    title: "Ergonomie",
+    fullTitle: "Ergonomie et Navigation",
+    tdGroup: "TD001",
+    teacher: "Bertrand Cochet",
+    room: "D.413",
+    startTime: "09:00",
+    endTime: "12:00",
+    date: "14 nov 25",
+    color: "bg-pink-50 border-pink-200",
+    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
+    courseRef: "53UCB01",
+  },
+  {
+    id: "2",
+    title: "Gestion des situations orales",
+    fullTitle: "Gestion des situations orales",
+    teacher: "M. Fontana",
+    room: "D.413",
+    startTime: "13:00",
+    endTime: "16:00",
+    date: "14 nov 25",
+    color: "bg-indigo-50 border-indigo-200",
+    moodleLink: "Cours : Gestion des situations orales | Moodle UL2",
+    courseRef: "53UCB02",
+  },
+];
+
+// Cours pour la vue Mois (Décembre)
+const monthCourses: Record<string, Course[]> = {
+  "05": [
+    {
+      id: "m1",
+      title: "Cours 1",
+      fullTitle: "Cours 1",
+      teacher: "Alexandra Duma",
+      room: "D.309",
+      startTime: "09:00",
+      endTime: "12:00",
+      date: "05 déc 25",
+      color: "bg-pink-50 border-pink-200",
+      moodleLink: "Cours : Cours 1 | Moodle UL2",
+      courseRef: "53UCB03",
+    },
+    {
+      id: "m2",
+      title: "Cours 2",
+      teacher: "Alexandra Duma",
+      room: "D.309",
+      startTime: "13:00",
+      endTime: "16:00",
+      color: "bg-pink-50 border-pink-200",
+    },
+  ],
+};
+
+// Cours pour la vue Semaine
+const weekCourses: WeekCourse[] = [
+  {
+    day: "L",
+    date: "10",
+    courses: [
+      { startTime: "08:00", endTime: "11:00", color: "bg-green-300" },
+      { startTime: "13:00", endTime: "16:00", color: "bg-orange-300" },
+    ],
+  },
+  {
+    day: "M",
+    date: "11",
+    courses: [
+      { startTime: "13:00", endTime: "17:00", color: "bg-yellow-300" },
+    ],
+  },
+  {
+    day: "M",
+    date: "12",
+    courses: [
+      { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
+      { startTime: "13:00", endTime: "16:00", color: "bg-green-300" },
+    ],
+  },
+  {
+    day: "J",
+    date: "13",
+    courses: [
+      { startTime: "08:30", endTime: "12:00", color: "bg-yellow-200" },
+      { startTime: "13:00", endTime: "16:30", color: "bg-yellow-200" },
+    ],
+  },
+  {
+    day: "V",
+    date: "14",
+    courses: [
+      { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
+      { startTime: "13:00", endTime: "16:00", color: "bg-indigo-300" },
+    ],
+  },
+];
+
+const timeSlots = [
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+];
+
+// Heures principales pour la vue Semaine (sans minutes)
+const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+
+const weekDays = [
+  { label: "L", date: "10" },
+  { label: "M", date: "11" },
+  { label: "M", date: "12" },
+  { label: "J", date: "13" },
+  { label: "V", date: "14" },
+];
+
+// Résultats de recherche simulés
+const searchResults: Course[] = [
+  {
+    id: "search-1",
+    title: "Ergonomie",
+    fullTitle: "Ergonomie et Navigation - TD001",
+    teacher: "Bertrand Cochet",
+    room: "D.413",
+    startTime: "09:00",
+    endTime: "12:00",
+    date: "14 nov",
+    color: "bg-pink-50 border-pink-200",
+    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
+    courseRef: "53UCB01",
+  },
+  {
+    id: "search-2",
+    title: "Ergonomie",
+    fullTitle: "Ergonomie et Navigation - TD001",
+    teacher: "Bertrand Cochet",
+    room: "D.413",
+    startTime: "13:00",
+    endTime: "16:00",
+    date: "3 déc",
+    color: "bg-pink-50 border-pink-200",
+    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
+    courseRef: "53UCB01",
+  },
+  {
+    id: "search-3",
+    title: "Ergonomie",
+    fullTitle: "Ergonomie et Navigation - TD001",
+    teacher: "Bertrand Cochet",
+    room: "D.413",
+    startTime: "13:00",
+    endTime: "16:00",
+    date: "9 déc",
+    color: "bg-pink-50 border-pink-200",
+    moodleLink: "Cours : 53UCB01 - TD - Ergonomie & Navigation (Bertrand Cochet 2025-26) | Moodle UL2",
+    courseRef: "53UCB01",
+  },
+];
+
+export default function PlanningPage() {
+  const [mode, setMode] = useState<ViewMode>("Jour");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 11, 1)); // Décembre 2024
+  const [selectedDay, setSelectedDay] = useState("05");
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+  const [dragStartY, setDragStartY] = useState(0);
+  const [currentY, setCurrentY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const bottomSheetRef = useRef<HTMLDivElement>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Liste de tous les cours pour la navigation
+  const getAllCourses = (): Course[] => {
+    const allCourses: Course[] = [...dayCourses];
+    // Ajouter les cours du mois
+    Object.values(monthCourses).forEach((courses) => {
+      allCourses.push(...courses);
+    });
+    return allCourses;
+  };
+
+  const PIXEL_PER_HOUR = 60;
+
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const getCoursePosition = (startTime: string, endTime: string) => {
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+    const dayStart = timeToMinutes("08:00");
+    
+    const topPixels = ((startMinutes - dayStart) / 60) * PIXEL_PER_HOUR;
+    const heightPixels = ((endMinutes - startMinutes) / 60) * PIXEL_PER_HOUR;
+
+    return { 
+      top: `${topPixels}px`, 
+      height: `${heightPixels}px`
+    };
+  };
+
+  const handleModeChange = (newMode: ViewMode) => {
+    setMode(newMode);
+    setIsDropdownOpen(false);
+  };
+
+  // Générer le calendrier mensuel (5 semaines, 5 jours par semaine)
+  const generateMonthCalendar = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+
+    // Ajuster pour que Lundi = 0
+    const adjustedStartingDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+
+    const weeks: (string | null)[][] = [];
+    let currentWeek: (string | null)[] = [];
+
+    // Remplir les jours vides du début
+    for (let i = 0; i < adjustedStartingDay; i++) {
+      currentWeek.push(null);
+    }
+
+    // Ajouter les jours du mois
+    for (let day = 1; day <= daysInMonth; day++) {
+      currentWeek.push(day.toString().padStart(2, "0"));
+      if (currentWeek.length === 5) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    }
+
+    // Remplir les jours vides de la fin pour compléter la dernière semaine
+    while (currentWeek.length < 5 && currentWeek.length > 0) {
+      currentWeek.push(null);
+    }
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek);
+    }
+
+    // S'assurer d'avoir exactement 5 semaines
+    while (weeks.length < 5) {
+      weeks.push([null, null, null, null, null]);
+    }
+
+    return weeks.slice(0, 5); // Limiter à 5 semaines
+  };
+
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentMonth((prev) => {
+      const newDate = new Date(prev);
+      if (direction === "prev") {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const getMonthName = () => {
+    return currentMonth.toLocaleDateString("fr-FR", { month: "long" });
+  };
+
+  // Fonction pour extraire la couleur de fond Tailwind
+  const getBackgroundColor = (colorClass: string): string => {
+    // Extraire la classe bg-* de la chaîne
+    const match = colorClass.match(/bg-[\w-]+/);
+    return match ? match[0] : "bg-pink-50";
+  };
+
+  // Fonctions pour gérer le Bottom Sheet
+  const handleCourseClick = (course: Course) => {
+    setSelectedCourse(course);
+    setIsBottomSheetOpen(true);
+    setIsSheetExpanded(false); // Initialiser en mode compact
+    setCurrentY(0);
+  };
+
+  const handleCloseBottomSheet = () => {
+    setIsBottomSheetOpen(false);
+    setSelectedCourse(null);
+    setIsSheetExpanded(false);
+    setCurrentY(0);
+  };
+
+  const handleToggleExpand = () => {
+    setIsSheetExpanded(!isSheetExpanded);
+  };
+
+  // Navigation entre les cours
+  const navigateCourse = (direction: "prev" | "next") => {
+    const allCourses = getAllCourses();
+    if (!selectedCourse) return;
+    
+    const currentIndex = allCourses.findIndex((c) => c.id === selectedCourse.id);
+    if (currentIndex === -1) return;
+
+    let newIndex: number;
+    if (direction === "prev") {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : allCourses.length - 1;
+    } else {
+      newIndex = currentIndex < allCourses.length - 1 ? currentIndex + 1 : 0;
+    }
+
+    setSelectedCourse(allCourses[newIndex]);
+  };
+
+  // Gestion du glissement pour expansion/contraction et fermeture
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (bottomSheetRef.current) {
+      const touch = e.touches[0];
+      setDragStartY(touch.clientY);
+      setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging && bottomSheetRef.current) {
+      const touch = e.touches[0];
+      const deltaY = touch.clientY - dragStartY;
+      
+      if (isSheetExpanded) {
+        // Si étendu, on peut glisser vers le bas pour réduire ou fermer
+        if (deltaY > 0) {
+          setCurrentY(deltaY);
+        }
+      } else {
+        // Si compact, on peut glisser vers le haut pour agrandir ou vers le bas pour fermer
+        if (deltaY < -50) {
+          // Glissement vers le haut : agrandir
+          setIsSheetExpanded(true);
+          setIsDragging(false);
+          setCurrentY(0);
+        } else if (deltaY > 0) {
+          // Glissement vers le bas : fermer
+          setCurrentY(deltaY);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isDragging) {
+      if (isSheetExpanded) {
+        // Si étendu et glissé vers le bas de plus de 100px, réduire
+        if (currentY > 100) {
+          setIsSheetExpanded(false);
+          setCurrentY(0);
+        } else {
+          // Sinon, revenir à la position étendue
+          setCurrentY(0);
+        }
+      } else {
+        // Si compact et glissé vers le bas de plus de 100px, fermer
+        if (currentY > 100) {
+          handleCloseBottomSheet();
+        } else {
+          // Sinon, revenir à la position initiale
+          setCurrentY(0);
+        }
+      }
+      setIsDragging(false);
+    }
+  };
+
+  // Formatage de l'heure pour l'affichage
+  const formatTime = (time: string) => {
+    return time.replace(":00", "h");
+  };
+
+  // Fonction de filtrage des résultats de recherche
+  const getFilteredResults = (): Course[] => {
+    if (!searchQuery.trim()) {
+      return [];
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return searchResults.filter(
+      (course) =>
+        course.title.toLowerCase().includes(query) ||
+        (course.fullTitle && course.fullTitle.toLowerCase().includes(query)) ||
+        course.teacher.toLowerCase().includes(query)
+    );
+  };
+
+  // Fermer le dropdown si on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Focuser le champ de recherche quand on entre en mode recherche
+  useEffect(() => {
+    if (isSearching && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearching]);
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* App Bar / Header - Fixé en haut */}
+      {!isSearching && (
+        <header className="fixed top-0 w-full bg-white z-50 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 py-3">
+            {/* Menu Hamburger - Gauche */}
+            <button className="p-2" aria-label="Menu">
+              <svg
+                className="w-6 h-6 text-gray-700"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+
+            {/* Logo - Centre */}
+            <div className="flex-1 flex justify-center">
+              <div className="text-[10px] font-semibold text-gray-800 tracking-tight">
+                Université Lumière Lyon 2
+              </div>
+            </div>
+
+            {/* Icônes Recherche et Notification - Droite */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setIsSearching(true);
+                  setSearchQuery("");
+                }}
+                className="p-2"
+                aria-label="Recherche"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </button>
+              <button className="p-2" aria-label="Notifications">
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {/* Vue de Recherche */}
+      {isSearching && (
+        <div className="min-h-screen bg-white">
+          {/* En-tête de Recherche */}
+          <header className="fixed top-0 w-full bg-white z-50 border-b border-gray-200">
+            <div className="flex items-center px-4 py-3">
+              {/* Icône de Retour */}
+              <button
+                onClick={() => {
+                  setIsSearching(false);
+                  setSearchQuery("");
+                }}
+                className="p-2 mr-2"
+                aria-label="Retour"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+
+              {/* Champ de Saisie */}
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher un cours"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                autoFocus
+              />
+            </div>
+          </header>
+
+          {/* Contenu Principal - Résultats de recherche */}
+          <div className="pt-20 min-h-screen bg-white">
+            {searchQuery.trim() ? (
+              <div className="px-4 py-4">
+                {getFilteredResults().length > 0 ? (
+                  <div className="space-y-3">
+                    {getFilteredResults().map((course) => (
+                      <div
+                        key={course.id}
+                        onClick={() => {
+                          handleCourseClick(course);
+                          setIsSearching(false);
+                          setSearchQuery("");
+                        }}
+                        className={`${course.color} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow active:scale-95`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          {/* Date/Mois à gauche */}
+                          <div className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                            {course.date}
+                          </div>
+                          {/* Titre du cours au centre */}
+                          <div className="flex-1 text-center px-2">
+                            <h3 className="font-bold text-base text-gray-900">
+                              {course.title}
+                            </h3>
+                          </div>
+                          {/* Plage horaire à droite */}
+                          <div className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                            {formatTime(course.startTime)} - {formatTime(course.endTime)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Aucun résultat trouvé</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="px-4 py-4">
+                {/* Zone vide - en attente de saisie */}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Contenu principal avec padding-top pour compenser le header fixe */}
+      {!isSearching && (
+        <div className="pt-16">
+          {/* Ligne de Contrôle - Change selon le mode */}
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+          {/* Gauche : Icône calendrier + Date */}
+          <div className="flex items-center gap-2">
+            <svg
+              className="w-5 h-5 text-gray-700"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span className="font-bold text-gray-900">
+              {mode === "Jour"
+                ? "Vendredi 14 Novembre"
+                : mode === "Semaine"
+                ? "10 - 14 novembre"
+                : getMonthName()}
+            </span>
+          </div>
+
+          {/* Droite : Menu déroulant de sélection de mode */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-pink-100 hover:bg-pink-200 rounded-md transition-colors"
+            >
+              <span className="text-sm font-medium text-pink-700">{mode}</span>
+              <svg
+                className={`w-4 h-4 text-pink-700 transition-transform ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            {/* Menu déroulant */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleModeChange("Jour")}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                      mode === "Jour"
+                        ? "bg-pink-100 text-pink-700 font-medium"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    Jour
+                  </button>
+                  <button
+                    onClick={() => handleModeChange("Semaine")}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                      mode === "Semaine"
+                        ? "bg-pink-100 text-pink-700 font-medium"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    Semaine
+                  </button>
+                  <button
+                    onClick={() => handleModeChange("Mois")}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                      mode === "Mois"
+                        ? "bg-pink-100 text-pink-700 font-medium"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    Mois
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sélecteur de Jour/Date - Identique dans les deux vues */}
+        <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
+          {weekDays.map((day, index) => {
+            const isActive = day.date === "14";
+            return (
+              <div
+                key={index}
+                className={`flex flex-col items-center ${
+                  isActive ? "bg-red-500 text-white" : "text-gray-500"
+                } rounded-lg px-3 py-2 min-w-[40px]`}
+              >
+                <span
+                  className={`text-sm font-medium ${
+                    isActive ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  {day.label}
+                </span>
+                <span
+                  className={`text-xs mt-1 ${
+                    isActive ? "text-white" : "text-gray-500"
+                  }`}
+                >
+                  {day.date}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Corps Principal - Trois vues différentes */}
+        {mode === "Jour" && (
+          /* Vue 'Jour' */
+          <div className="relative bg-white">
+            <div className="flex">
+              {/* Colonne des heures */}
+              <div className="w-16 flex-shrink-0 border-r border-gray-200">
+                {timeSlots.map((time) => (
+                  <div key={time} className="h-16 flex items-start justify-end pr-2 pt-1">
+                    <span className="text-xs text-gray-600">
+                      {time.replace(":00", ".00")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Zone des cours */}
+              <div className="flex-1 relative" style={{ minHeight: `${((timeToMinutes("19:00") - timeToMinutes("08:00")) / 60) * PIXEL_PER_HOUR}px` }}>
+                {/* Lignes horaires */}
+                {timeSlots.map((time) => {
+                  const timeMinutes = timeToMinutes(time);
+                  const dayStart = timeToMinutes("08:00");
+                  const topPixels = ((timeMinutes - dayStart) / 60) * PIXEL_PER_HOUR;
+                  return (
+                    <div
+                      key={time}
+                      className="absolute left-0 right-0 border-b border-gray-100"
+                      style={{ top: `${topPixels}px`, height: `${PIXEL_PER_HOUR}px` }}
+                    ></div>
+                  );
+                })}
+
+                {/* Ligne de séparation de midi à 12:30 */}
+                <div
+                  className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
+                  style={{ top: `${((timeToMinutes("12:30") - timeToMinutes("08:00")) / 60) * PIXEL_PER_HOUR}px` }}
+                >
+                  <span className="text-xs font-medium text-white">12:30</span>
+                </div>
+
+                {/* Blocs de cours avec détails */}
+                {dayCourses.map((course) => {
+                  const position = getCoursePosition(
+                    course.startTime,
+                    course.endTime
+                  );
+                  return (
+                    <div
+                      key={course.id}
+                      onClick={() => handleCourseClick(course)}
+                      className={`absolute left-2 right-2 ${course.color} border rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
+                      style={{
+                        top: position.top,
+                        height: position.height,
+                        minHeight: "60px",
+                      }}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className="font-bold text-base text-gray-900 mb-1">
+                          {course.title}
+                        </div>
+                        <div className="text-sm text-gray-700 mb-1">
+                          {course.teacher}
+                        </div>
+                        <div className="text-xs text-gray-600 mb-auto">
+                          {course.startTime.replace(":", ".")} -{" "}
+                          {course.endTime.replace(":", ".")}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-auto text-right font-medium">
+                          {course.room}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+        {mode === "Semaine" && (
+          /* Vue 'Semaine' */
+          <div className="relative bg-white">
+            <div className="flex">
+              {/* Colonne des heures (sans minutes) */}
+              <div className="w-12 flex-shrink-0 border-r border-gray-200">
+                {weekTimeSlots.map((hour) => (
+                  <div
+                    key={hour}
+                    className="h-16 flex items-start justify-end pr-2 pt-1"
+                  >
+                    <span className="text-xs text-gray-600">{hour}h</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Grille des jours */}
+              <div className="flex-1 flex">
+                {weekCourses.map((dayData, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className="flex-1 relative border-r border-gray-200 last:border-r-0"
+                    style={{ minHeight: "704px" }}
+                  >
+                    {/* Lignes horaires */}
+                    {weekTimeSlots.map((hour) => (
+                      <div
+                        key={hour}
+                        className="h-16 border-b border-gray-100"
+                      ></div>
+                    ))}
+
+                    {/* Barres de cours colorées (sans texte) */}
+                    {dayData.courses.map((course, courseIndex) => {
+                      const position = getCoursePosition(
+                        course.startTime,
+                        course.endTime
+                      );
+                      // Créer un objet Course à partir des données de la semaine
+                      const weekCourse: Course = {
+                        id: `${dayData.date}-${courseIndex}`,
+                        title: `Cours ${dayData.day} ${dayData.date}`,
+                        fullTitle: `Cours ${dayData.day} ${dayData.date}`,
+                        teacher: "Professeur",
+                        room: "D.413",
+                        startTime: course.startTime,
+                        endTime: course.endTime,
+                        date: `${dayData.date} nov 25`,
+                        color: course.color,
+                        moodleLink: `Cours : ${dayData.day} ${dayData.date} | Moodle UL2`,
+                        courseRef: "53UCB01",
+                      };
+                      return (
+                        <div
+                          key={courseIndex}
+                          onClick={() => handleCourseClick(weekCourse)}
+                          className={`absolute left-1 right-1 ${course.color} rounded cursor-pointer hover:opacity-80 transition-opacity`}
+                          style={{
+                            top: position.top,
+                            height: position.height,
+                            minHeight: "20px",
+                          }}
+                        ></div>
+                      );
+                    })}
+
+                    {/* Affichage de la salle D.413 en bas de la colonne Vendredi à 17h */}
+                    {dayData.date === "14" && (
+                      <div
+                        className="absolute left-1 right-1 text-xs text-gray-600 text-center font-medium"
+                        style={{ top: "81.8%" }}
+                      >
+                        D.413
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {mode === "Mois" && (
+          /* Vue 'Mois' */
+          <div className="bg-white">
+            {/* Grille de calendrier */}
+            <div className="px-4 py-4">
+              {/* En-têtes des jours */}
+              <div className="grid grid-cols-5 gap-1 mb-2">
+                {["L", "M", "M", "J", "V"].map((day, index) => (
+                  <div
+                    key={index}
+                    className="text-center text-sm font-semibold text-gray-700 py-2"
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Grille des dates */}
+              <div className="grid grid-cols-5 gap-1">
+                {generateMonthCalendar().map((week, weekIndex) =>
+                  week.map((date, dayIndex) => {
+                    if (date === null) {
+                      return (
+                        <div
+                          key={`${weekIndex}-${dayIndex}`}
+                          className="aspect-square"
+                        ></div>
+                      );
+                    }
+                    const isSelected = date === selectedDay;
+                    return (
+                      <button
+                        key={`${weekIndex}-${dayIndex}`}
+                        onClick={() => setSelectedDay(date)}
+                        className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
+                          isSelected
+                            ? "bg-red-500 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {date}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Liste des cours du jour sélectionné */}
+            {monthCourses[selectedDay] && monthCourses[selectedDay].length > 0 && (
+              <div className="px-4 py-4 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Vendredi {selectedDay} Décembre
+                </h3>
+                <div className="space-y-3">
+                  {monthCourses[selectedDay].map((course) => (
+                    <div
+                      key={course.id}
+                      onClick={() => handleCourseClick(course)}
+                      className={`${course.color} border rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow`}
+                    >
+                      <div className="flex flex-col">
+                        <div className="font-bold text-base text-gray-900 mb-1">
+                          {course.title}
+                        </div>
+                        <div className="text-sm text-gray-700 mb-1">
+                          {course.teacher}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600">
+                            {course.startTime.replace(":", ".")} -{" "}
+                            {course.endTime.replace(":", ".")}
+                          </span>
+                          <span className="text-xs text-gray-600 font-medium">
+                            {course.room}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Navigation mois précédent/suivant */}
+            <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 bg-white">
+              <button
+                onClick={() => navigateMonth("prev")}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Mois précédent"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <span className="text-sm font-medium text-gray-700">
+                {getMonthName()}
+              </span>
+              <button
+                onClick={() => navigateMonth("next")}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Mois suivant"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+        </div>
+      )}
+
+      {/* Bottom Sheet */}
+      {isBottomSheetOpen && selectedCourse && (
+        <div
+          ref={bottomSheetRef}
+          className={`fixed bottom-0 left-0 right-0 ${getBackgroundColor(selectedCourse.color)} rounded-t-2xl shadow-2xl z-50 ${isSheetExpanded ? "h-[90vh]" : "h-[45vh]"}`}
+          style={{
+            transform: `translateY(${currentY}px)`,
+            transition: isDragging ? "none" : "transform 0.3s ease-out, height 0.3s ease-out",
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Poignée de glissement */}
+          <div className="flex justify-center pt-3 pb-2">
+            <div className="w-12 h-1 bg-gray-400 rounded-full"></div>
+          </div>
+
+          {/* En-tête avec bouton fermer */}
+          <div className="flex justify-end px-6 pt-2 pb-4">
+            <button
+              onClick={handleCloseBottomSheet}
+              className="p-2 hover:bg-black/10 rounded-full transition-colors"
+              aria-label="Fermer"
+            >
+              <svg
+                className="w-6 h-6 text-slate-900"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          {/* Contenu scrollable */}
+          <div className={`px-6 overflow-y-auto ${isSheetExpanded ? "pb-24 h-full" : "pb-4"}`}>
+            {/* Titre du cours avec salle */}
+            <div className="flex items-start justify-between mb-4 gap-3">
+              <h2 className="text-3xl font-bold text-slate-900 flex-1">
+                {selectedCourse.title}
+                {selectedCourse.tdGroup && ` - ${selectedCourse.tdGroup}`}
+              </h2>
+              <span className="rounded-full bg-white/70 px-3 py-1 text-sm font-semibold text-slate-800 whitespace-nowrap">
+                {selectedCourse.room}
+              </span>
+            </div>
+
+            {/* Heure/Date */}
+            <div className="mb-4">
+              <p className="text-xl font-semibold text-slate-900">
+                {formatTime(selectedCourse.startTime)} - {formatTime(selectedCourse.endTime)}
+                {selectedCourse.date && ` ${selectedCourse.date}`}
+              </p>
+            </div>
+
+            {/* Professeur et Bouton Contacter */}
+            <div className="mb-4">
+              <p className="text-base text-slate-800 mb-4">{selectedCourse.teacher}</p>
+              <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                Contacter
+              </button>
+            </div>
+
+            {/* Mode Compact : Bouton "Voir plus" */}
+            {!isSheetExpanded && (
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={handleToggleExpand}
+                  className="flex flex-col items-center text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  <span className="text-sm font-medium mb-1">Voir plus</span>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Mode Étendu : Sections supplémentaires */}
+            {isSheetExpanded && (
+              <>
+                {/* Section Devoirs - Carte blanche */}
+                <div className="bg-white p-4 rounded-xl shadow-md mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">
+                    Devoirs pour cette séance :
+                  </h3>
+                  <div className="space-y-3">
+                    {/* Tâche 1 - cochée */}
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked
+                        readOnly
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                      />
+                      <label className="ml-3 text-sm text-gray-700">
+                        Faire la maquette
+                      </label>
+                    </div>
+                    {/* Tâche 2 - non cochée avec badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <label className="ml-3 text-sm text-gray-700">
+                          Prototype
+                        </label>
+                      </div>
+                      <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                        à déposer
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Accès Moodle - Carte blanche */}
+                <div className="bg-white p-4 rounded-xl shadow-md mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 mb-3">
+                    Accès au cours sur Moodle
+                  </h3>
+                  {selectedCourse.moodleLink && (
+                    <a
+                      href="#"
+                      className="text-sm text-blue-600 underline hover:text-blue-800 break-words"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Ici on pourrait ouvrir le lien Moodle
+                      }}
+                    >
+                      {selectedCourse.moodleLink}
+                    </a>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Navigation entre les cours - en bas (visible seulement en mode étendu) */}
+          {isSheetExpanded && (
+            <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-4 ${getBackgroundColor(selectedCourse.color)} border-t border-black/10`}>
+              <button
+                onClick={() => navigateCourse("prev")}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 transition-colors"
+                aria-label="Cours précédent"
+              >
+                <svg
+                  className="w-5 h-5 text-slate-900"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <span className="text-sm font-medium text-slate-900">
+                {(() => {
+                  const allCourses = getAllCourses();
+                  const currentIndex = allCourses.findIndex((c) => c.id === selectedCourse.id);
+                  return `${currentIndex + 1} / ${allCourses.length}`;
+                })()}
+              </span>
+              <button
+                onClick={() => navigateCourse("next")}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 transition-colors"
+                aria-label="Cours suivant"
+              >
+                <svg
+                  className="w-5 h-5 text-slate-900"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

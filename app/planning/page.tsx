@@ -608,7 +608,7 @@ export default function PlanningPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher un cours"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 autoFocus
               />
             </div>
@@ -1020,14 +1020,15 @@ export default function PlanningPage() {
                         <button
                           key={`${weekIndex}-${dayIndex}`}
                           onClick={() => setSelectedDate(dateObj)}
-                          className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
-                            isSelected
+                          className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors text-black ${
+    
+                            parseInt(date) == d.getDay()
                               ? "bg-red-500 text-white"
-                              : "text-gray-700 hover:bg-gray-100"
+                              : isSelected ? "bg-red-200 text-white" : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           {date}
-                        </button>
+                          </button>
                       );
                     })
                   )}

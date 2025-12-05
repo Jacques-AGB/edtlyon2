@@ -831,18 +831,18 @@ export default function PlanningPage() {
 
                   {/* Ligne de séparation de midi à 12:30 - Positionnée à 4.5 * PIXEL_PER_HOUR depuis 8h00 */}
                   <div
-  className="absolute left-0 right-2 flex z-50"
-  style={{ top: `${(hour - 8 + minutes / 60) * PIXEL_PER_HOUR}px` }}
->
-  <div className="flex flex-row items-center w-full">
-    <span className="text-xs font-medium text-white px-2 py-1 bg-red-500 rounded-full">
-      {`${hour}:${minutes}`}
-    </span>
+                    className="absolute left-0 right-2 flex z-50"
+                    style={{ top: `${(hour - 8 + minutes / 60) * PIXEL_PER_HOUR}px` }}
+                  >
+                    <div className="flex flex-row items-center w-full">
+                      <span className="text-xs font-medium text-white px-2 py-1 bg-red-500 rounded-full">
+                        {`${hour}:${minutes}`}
+                      </span>
 
-    {/* Horizontal red line */}
-    <span className="flex-grow h-[2px] bg-red-500 overflow-hidden"></span>
-  </div>
-</div>
+                      {/* Horizontal red line */}
+                      <span className="flex-grow h-[2px] bg-red-500 overflow-hidden"></span>
+                    </div>
+                    </div>
 
                   {/* Blocs de cours avec détails - Positionnement dynamique */}
                   {dayCourses.map((course) => {
@@ -945,13 +945,22 @@ export default function PlanningPage() {
                               <div
                                 key={course.id}
                                 onClick={() => handleCourseClick(course)}
-                                className={`absolute left-1 right-1 ${course.colorTailwind} rounded cursor-pointer hover:opacity-80 transition-opacity z-20`}
-                                style={{
-                                  top: `${topPixels}px`,
-                                  height: position.height,
-                                  minHeight: "20px",
-                                }}
-                              ></div>
+                              className={`absolute left-1 right-1 ${course.colorTailwind} rounded cursor-pointer hover:opacity-80 transition-opacity z-20`}
+                              style={{
+                                top: `${topPixels}px`,
+                                height: position.height,
+                                minHeight: "20px",
+                              }}
+                              >
+                                <div className="px-2 py-1">
+                                  <div className="text-[8px] sm:text:text-[12px] font-semibold text-gray-900 leading-tight truncate">
+                                    {course.title}
+                                  </div>
+                                  <div className="text-[8px] sm:text:text-[12px] text-gray-700 leading-tight">
+                                    {course.startTime.replace(":", ".")} - {course.endTime.replace(":", ".")}
+                                  </div>
+                                </div>
+                              </div>
                             );
                           })}
                       </div>

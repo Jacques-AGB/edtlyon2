@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { format, isSameDay, startOfWeek, addDays, parseISO } from "date-fns";
+import { format, isSameDay, startOfWeek, addDays, parseISO, getMinutes } from "date-fns";
 import { fr } from "date-fns/locale";
+import Image from "next/image";
 import { MOCK_COURSES } from "../../lib/scheduleData";
 import type { Course as CourseType } from "../../lib/types";
+import lyon2 from "@/public/lyon2.svg"
 
 type ViewMode = "Jour" | "Semaine" | "Mois";
 
@@ -42,7 +44,7 @@ interface WeekCourse {
 
 // Constantes de la grille
 const PIXEL_PER_HOUR = 60; // 60px pour chaque heure (échelle)
-const HOURS = Array.from({ length: 12 }, (_, i) => 8 + i); // 08h00 à 19h00
+const HOURS = Array.from({ length: 13 }, (_, i) => 8 + i); // 08h00 à 19h00
 const INITIAL_DATE = new Date("2025-11-14T00:00:00"); // Vendredi 14 Novembre 2025
 
 // Définir les objets Date pour les jours de la semaine à afficher (Lundi 10 au Vendredi 14)
@@ -162,10 +164,11 @@ const timeSlots = [
   "17:00",
   "18:00",
   "19:00",
+  "20:00",
 ];
 
 // Heures principales pour la vue Semaine (sans minutes)
-const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
 // Résultats de recherche - utiliser MOCK_COURSES convertis
 const searchResults: Course[] = allCoursesData;
@@ -497,6 +500,11 @@ export default function PlanningPage() {
     }
   }, [isSearching]);
 
+  //Hours
+  const d = new Date();
+  let hour = d.getHours();
+  let minutes = d.getMinutes()
+
   return (
     <div className="min-h-screen bg-white">
       {/* App Bar / Header - Fixé en haut */}
@@ -521,7 +529,7 @@ export default function PlanningPage() {
             {/* Logo - Centre */}
             <div className="flex-1 flex justify-center">
               <div className="text-[10px] font-semibold text-gray-800 tracking-tight">
-                Université Lumière Lyon 2
+              <Image src={lyon2} alt="lyon2" />
               </div>
             </div>
 
@@ -823,11 +831,18 @@ export default function PlanningPage() {
 
                   {/* Ligne de séparation de midi à 12:30 - Positionnée à 4.5 * PIXEL_PER_HOUR depuis 8h00 */}
                   <div
-                    className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
-                    style={{ top: `${4.5 * PIXEL_PER_HOUR}px` }}
-                  >
-                    <span className="text-xs font-medium text-white">12:30</span>
-                  </div>
+  className="absolute left-0 right-2 flex z-50"
+  style={{ top: `${(hour - 8 + minutes / 60) * PIXEL_PER_HOUR}px` }}
+>
+  <div className="flex flex-row items-center w-full">
+    <span className="text-xs font-medium text-white px-2 py-1 bg-red-500 rounded-full">
+      {`${hour}:${minutes}`}
+    </span>
+
+    {/* Horizontal red line */}
+    <span className="flex-grow h-[2px] bg-red-500 overflow-hidden"></span>
+  </div>
+</div>
 
                   {/* Blocs de cours avec détails - Positionnement dynamique */}
                   {dayCourses.map((course) => {
@@ -945,11 +960,18 @@ export default function PlanningPage() {
 
                   {/* Ligne de séparation de midi à 12:30 - Horizontalement sur toute la largeur */}
                   <div
-                    className="absolute left-0 right-0 h-8 bg-red-500 flex items-center justify-center z-10"
-                    style={{ top: `${4.5 * PIXEL_PER_HOUR}px` }}
-                  >
-                    <span className="text-xs font-medium text-white">12:30</span>
-                  </div>
+  className="absolute left-0 right-2 flex z-50"
+  style={{ top: `${(hour - 8 + minutes / 60) * PIXEL_PER_HOUR}px` }}
+>
+  <div className="flex flex-row items-center w-full">
+    <span className="text-xs font-medium text-white px-2 py-1 bg-red-500 rounded-full">
+      {`${hour}:${minutes}`}
+    </span>
+
+    {/* Horizontal red line */}
+    <span className="flex-grow h-[2px] bg-red-500 overflow-hidden"></span>
+  </div>
+</div>
                 </div>
               </div>
             </div>

@@ -45,7 +45,7 @@ interface WeekCourse {
 // Constantes de la grille
 const PIXEL_PER_HOUR = 60; // 60px pour chaque heure (échelle)
 const HOURS = Array.from({ length: 13 }, (_, i) => 8 + i); // 08h00 à 19h00
-const INITIAL_DATE = new Date("2025-11-14T00:00:00"); // Vendredi 14 Novembre 2025
+const INITIAL_DATE = new Date("2025-12-09T00:00:00"); // DÈbut du mois de dÈcembre 2025
 
 // Définir les objets Date pour les jours de la semaine à afficher (Lundi 10 au Vendredi 14)
 const DAYS_OF_WEEK = [
@@ -109,66 +109,66 @@ const convertCourseToLocalFormat = (course: CourseType): Course => {
 const allCoursesData: Course[] = MOCK_COURSES.map(convertCourseToLocalFormat);
 
 // Cours pour la vue Semaine (structure existante)
-const weekCourses: WeekCourse[] = [
-  {
-    day: "L",
-    date: "10",
-    courses: [
-      { startTime: "08:00", endTime: "11:00", color: "bg-green-300" },
-      { startTime: "13:00", endTime: "16:00", color: "bg-orange-300" },
-    ],
-  },
-  {
-    day: "M",
-    date: "11",
-    courses: [
-      { startTime: "13:00", endTime: "17:00", color: "bg-yellow-300" },
-    ],
-  },
-  {
-    day: "M",
-    date: "12",
-    courses: [
-      { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
-      { startTime: "13:00", endTime: "16:00", color: "bg-green-300" },
-    ],
-  },
-  {
-    day: "J",
-    date: "13",
-    courses: [
-      { startTime: "08:30", endTime: "12:00", color: "bg-yellow-200" },
-      { startTime: "13:00", endTime: "16:30", color: "bg-yellow-200" },
-    ],
-  },
-  {
-    day: "V",
-    date: "14",
-    courses: [
-      { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
-      { startTime: "13:00", endTime: "16:00", color: "bg-indigo-300" },
-    ],
-  },
-];
+// const weekCourses: WeekCourse[] = [
+//   {
+//     day: "L",
+//     date: "10",
+//     courses: [
+//       { startTime: "08:00", endTime: "11:00", color: "bg-green-300" },
+//       { startTime: "13:00", endTime: "16:00", color: "bg-orange-300" },
+//     ],
+//   },
+//   {
+//     day: "M",
+//     date: "11",
+//     courses: [
+//       { startTime: "13:00", endTime: "17:00", color: "bg-yellow-300" },
+//     ],
+//   },
+//   {
+//     day: "M",
+//     date: "12",
+//     courses: [
+//       { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
+//       { startTime: "13:00", endTime: "16:00", color: "bg-green-300" },
+//     ],
+//   },
+//   {
+//     day: "J",
+//     date: "13",
+//     courses: [
+//       { startTime: "08:30", endTime: "12:00", color: "bg-yellow-200" },
+//       { startTime: "13:00", endTime: "16:30", color: "bg-yellow-200" },
+//     ],
+//   },
+//   {
+//     day: "V",
+//     date: "14",
+//     courses: [
+//       { startTime: "09:00", endTime: "12:00", color: "bg-pink-300" },
+//       { startTime: "13:00", endTime: "16:00", color: "bg-indigo-300" },
+//     ],
+//   },
+// ];
 
-const timeSlots = [
-  "08:00",
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-];
+// const timeSlots = [
+//   "08:00",
+//   "09:00",
+//   "10:00",
+//   "11:00",
+//   "12:00",
+//   "13:00",
+//   "14:00",
+//   "15:00",
+//   "16:00",
+//   "17:00",
+//   "18:00",
+//   "19:00",
+//   "20:00",
+// ];
 
 // Heures principales pour la vue Semaine (sans minutes)
-const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+// const weekTimeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
 // Résultats de recherche - utiliser MOCK_COURSES convertis
 const searchResults: Course[] = allCoursesData;
@@ -177,8 +177,8 @@ export default function PlanningPage() {
   const [mode, setMode] = useState<ViewMode>("Jour");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 11, 1)); // Décembre 2024
-  const [selectedDay, setSelectedDay] = useState("05");
+  const [currentMonth, setCurrentMonth] = useState(new Date(INITIAL_DATE)); // Mois aligné sur la date initiale
+  // const [selectedDay, setSelectedDay] = useState("05");
   const [selectedDate, setSelectedDate] = useState<Date>(INITIAL_DATE);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -291,50 +291,47 @@ export default function PlanningPage() {
     setMode(newMode);
     setIsDropdownOpen(false);
   };
-
-  // Générer le calendrier mensuel (5 semaines, 5 jours par semaine)
+  // Generer le calendrier mensuel (jours ouvrables uniquement, L-V)
   const generateMonthCalendar = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
-
-    // Ajuster pour que Lundi = 0
-    const adjustedStartingDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
 
     const weeks: (string | null)[][] = [];
     let currentWeek: (string | null)[] = [];
 
-    // Remplir les jours vides du début
-    for (let i = 0; i < adjustedStartingDay; i++) {
-      currentWeek.push(null);
-    }
-
-    // Ajouter les jours du mois
     for (let day = 1; day <= daysInMonth; day++) {
+      const dateObj = new Date(year, month, day);
+      const dayOfWeek = dateObj.getDay();
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        continue;
+      }
+
+      if (currentWeek.length === 0) {
+        const offset = dayOfWeek - 1;
+        for (let i = 0; i < offset; i++) {
+          currentWeek.push(null);
+        }
+      }
+
       currentWeek.push(day.toString().padStart(2, "0"));
+
       if (currentWeek.length === 5) {
         weeks.push(currentWeek);
         currentWeek = [];
       }
     }
 
-    // Remplir les jours vides de la fin pour compléter la dernière semaine
-    while (currentWeek.length < 5 && currentWeek.length > 0) {
-      currentWeek.push(null);
-    }
     if (currentWeek.length > 0) {
+      while (currentWeek.length < 5) {
+        currentWeek.push(null);
+      }
       weeks.push(currentWeek);
     }
 
-    // S'assurer d'avoir exactement 5 semaines
-    while (weeks.length < 5) {
-      weeks.push([null, null, null, null, null]);
-    }
-
-    return weeks.slice(0, 5); // Limiter à 5 semaines
+    return weeks;
   };
 
   const navigateMonth = (direction: "prev" | "next") => {
@@ -475,6 +472,30 @@ export default function PlanningPage() {
 
   // Obtenir les dates de la semaine pour le DateNavigator
   const weekDates = getWeekDates(selectedDate);
+
+  // Regrouper les cours par jour pour l'affichage mensuel
+  const monthCoursesByDay = useMemo(() => {
+    const month = currentMonth.getMonth();
+    const year = currentMonth.getFullYear();
+
+    return allCoursesData.reduce<Record<string, Course[]>>((acc, course) => {
+      if (course.date.getMonth() !== month || course.date.getFullYear() !== year) {
+        return acc;
+      }
+      const key = format(course.date, "yyyy-MM-dd");
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(course);
+      return acc;
+    }, {});
+  }, [currentMonth, allCoursesData]);
+
+  const handleMonthDaySelect = (dateObj: Date) => {
+    setSelectedDate(dateObj);
+    setCurrentMonth(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1));
+    setMode("Jour");
+  };
 
   // Fermer le dropdown si on clique en dehors
   useEffect(() => {
@@ -1010,25 +1031,74 @@ export default function PlanningPage() {
                         return (
                           <div
                             key={`${weekIndex}-${dayIndex}`}
-                            className="aspect-square"
+                            className="min-h-[110px]"
                           ></div>
                         );
                       }
-                      const dateObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), parseInt(date));
+                      const dateObj = new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth(),
+                        parseInt(date)
+                      );
                       const isSelected = isSameDayDate(dateObj, selectedDate);
+                      const isToday = isSameDayDate(dateObj, new Date());
+                      const dateKey = format(dateObj, "yyyy-MM-dd");
+                      const coursesForDate = monthCoursesByDay[dateKey] || [];
+
                       return (
                         <button
                           key={`${weekIndex}-${dayIndex}`}
-                          onClick={() => setSelectedDate(dateObj)}
-                          className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-colors text-black ${
-    
-                            parseInt(date) == d.getDay()
-                              ? "bg-red-500 text-white"
-                              : isSelected ? "bg-red-200 text-white" : "text-gray-700 hover:bg-gray-100"
+                          onClick={() => handleMonthDaySelect(dateObj)}
+                          className={`flex flex-col items-start justify-start rounded-lg border text-left p-2 min-h-[110px] transition-colors ${
+                            isToday
+                              ? "bg-red-500 text-white border-red-500"
+                              : isSelected
+                              ? "bg-red-200 text-white border-red-200"
+                              : "bg-white text-gray-900 hover:bg-gray-50 border-gray-200"
                           }`}
                         >
-                          {date}
-                          </button>
+                          <div className="flex items-center justify-between w-full">
+                            <span
+                              className={`text-sm font-semibold ${
+                                isToday || isSelected ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {date}
+                            </span>
+                            {coursesForDate.length > 0 && (
+                              <span
+                                className={`text-[10px] font-semibold rounded-full px-2 py-[2px] ${
+                                  isToday || isSelected
+                                    ? "bg-white/20 text-white"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {coursesForDate.length}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-2 space-y-1 w-full">
+                            {coursesForDate.slice(0, 3).map((course) => (
+                              <span
+                                key={course.id}
+                                className={`block text-[10px] font-medium truncate ${
+                                  isToday || isSelected ? "text-white" : "text-gray-700"
+                                }`}
+                              >
+                                {course.title}
+                              </span>
+                            ))}
+                            {coursesForDate.length > 3 && (
+                              <span
+                                className={`block text-[10px] ${
+                                  isToday || isSelected ? "text-white/80" : "text-gray-500"
+                                }`}
+                              >
+                                +{coursesForDate.length - 3} autres
+                              </span>
+                            )}
+                          </div>
+                        </button>
                       );
                     })
                   )}
@@ -1036,7 +1106,7 @@ export default function PlanningPage() {
               </div>
 
               {/* Liste des cours du jour sélectionné */}
-              {dayCourses.length > 0 && (
+              {/* {dayCourses.length > 0 && (
                 <div className="px-4 py-4 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
                     {format(selectedDate, "EEEE d MMMM", { locale: fr })}
@@ -1069,7 +1139,7 @@ export default function PlanningPage() {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Navigation mois précédent/suivant */}
               <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 bg-white">
@@ -1317,3 +1387,5 @@ export default function PlanningPage() {
     </div>
   );
 }
+
+

@@ -775,6 +775,7 @@ export default function PlanningPage() {
           </div>
 
           {/* DateNavigator - Sélecteur de Jour/Date */}
+          {mode !== "Mois" && (
           <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
             {weekDates.map((date, index) => {
               const isActive = isSameDayDate(date, selectedDate);
@@ -808,7 +809,7 @@ export default function PlanningPage() {
                 </button>
               );
             })}
-          </div>
+          </div> )}
 
           {/* Corps Principal - Trois vues différentes */}
           {mode === "Jour" && (

@@ -346,6 +346,12 @@ export default function PlanningPage() {
     });
   };
 
+  const navigateWeek = (direction: "prev" | "next") => {
+    setSelectedDate((prev) =>
+      addDays(prev, direction === "prev" ? -7 : 7)
+    );
+  };
+
   const getMonthName = () => {
     return format(currentMonth, "MMMM", { locale: fr });
   };
@@ -776,39 +782,81 @@ export default function PlanningPage() {
 
           {/* DateNavigator - Sélecteur de Jour/Date */}
           {mode !== "Mois" && (
-          <div className="flex items-center justify-around px-4 py-3 bg-white border-b border-gray-200">
-            {weekDates.map((date, index) => {
-              const isActive = isSameDayDate(date, selectedDate);
-              // Le surlignage rouge ne s'applique que en mode "Jour"
-              const shouldHighlight = isActive && mode === "Jour";
-              const dayLabel = format(date, "EEEEE", { locale: fr }); // L, M, M, J, V
-              const dayNumber = format(date, "d", { locale: fr });
-              
-              return (
-                <button
-                  key={index}
-                  onClick={() => setSelectedDate(date)}
-                  className={`flex flex-col items-center ${
-                    shouldHighlight ? "bg-red-500 text-white" : "text-gray-500"
-                  } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
+          <div className="flex items-center px-4 py-3 bg-white border-b border-gray-200 gap-3">
+            {mode === "Semaine" && (
+              <button
+                onClick={() => navigateWeek("prev")}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Semaine précédente"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <span
-                    className={`text-sm font-medium ${
-                      shouldHighlight ? "text-white" : "text-gray-700"
-                    }`}
+                  <path d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+            )}
+
+            <div className="flex items-center justify-around flex-1">
+              {weekDates.map((date, index) => {
+                const isActive = isSameDayDate(date, selectedDate);
+                // Le surlignage rouge ne s'applique que en mode "Jour"
+                const shouldHighlight = isActive && mode === "Jour";
+                const dayLabel = format(date, "EEEEE", { locale: fr }); // L, M, M, J, V
+                const dayNumber = format(date, "d", { locale: fr });
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedDate(date)}
+                    className={`flex flex-col items-center ${
+                      shouldHighlight ? "bg-red-500 text-white" : "text-gray-500"
+                    } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
                   >
-                    {dayLabel}
-                  </span>
-                  <span
-                    className={`text-xs mt-1 ${
-                      shouldHighlight ? "text-white" : "text-gray-500"
-                    }`}
-                  >
-                    {dayNumber}
-                  </span>
-                </button>
-              );
-            })}
+                    <span
+                      className={`text-sm font-medium ${
+                        shouldHighlight ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      {dayLabel}
+                    </span>
+                    <span
+                      className={`text-xs mt-1 ${
+                        shouldHighlight ? "text-white" : "text-gray-500"
+                      }`}
+                    >
+                      {dayNumber}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {mode === "Semaine" && (
+              <button
+                onClick={() => navigateWeek("next")}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Semaine suivante"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            )}
           </div> )}
 
           {/* Corps Principal - Trois vues différentes */}
@@ -975,10 +1023,10 @@ export default function PlanningPage() {
                               }}
                               >
                                 <div className="px-2 py-1">
-                                  <div className="text-[8px] sm:text:text-[12px] font-semibold text-gray-900 leading-tight truncate">
+                                  <div className="text-[8px] sm:text-[14px]   font-semibold text-gray-900 leading-tight truncate">
                                     {course.title}
                                   </div>
-                                  <div className="text-[8px] sm:text:text-[12px] text-gray-700 leading-tight">
+                                  <div className="text-[8px] sm:text-[14px] text-gray-700 leading-tight">
                                     {course.startTime.replace(":", ".")} - {course.endTime.replace(":", ".")}
                                   </div>
                                 </div>

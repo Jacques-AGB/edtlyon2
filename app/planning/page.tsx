@@ -1089,7 +1089,6 @@ export default function PlanningPage() {
                         currentMonth.getMonth(),
                         parseInt(date)
                       );
-                      const isSelected = isSameDayDate(dateObj, selectedDate);
                       const isToday = isSameDayDate(dateObj, new Date());
                       const dateKey = format(dateObj, "yyyy-MM-dd");
                       const coursesForDate = monthCoursesByDay[dateKey] || [];
@@ -1101,25 +1100,19 @@ export default function PlanningPage() {
                           className={`flex flex-col items-start justify-start rounded-lg border text-left p-2 min-h-[110px] transition-colors ${
                             isToday
                               ? "bg-red-500 text-white border-red-500"
-                              : isSelected
-                              ? "bg-red-200 text-white border-red-200"
                               : "bg-white text-gray-900 hover:bg-gray-50 border-gray-200"
                           }`}
                         >
                           <div className="flex items-center justify-between w-full">
                             <span
-                              className={`text-sm font-semibold ${
-                                isToday || isSelected ? "text-white" : "text-gray-900"
-                              }`}
+                              className={`text-sm font-semibold ${isToday ? "text-white" : "text-gray-900"}`}
                             >
                               {date}
                             </span>
                             {coursesForDate.length > 0 && (
                               <span
                                 className={`text-[10px] font-semibold rounded-full px-2 py-[2px] ${
-                                  isToday || isSelected
-                                    ? "bg-white/20 text-white"
-                                    : "bg-gray-100 text-gray-700"
+                                  isToday ? "bg-white/20 text-white" : "bg-gray-100 text-gray-700"
                                 }`}
                               >
                                 {coursesForDate.length}
@@ -1131,7 +1124,7 @@ export default function PlanningPage() {
                               <span
                                 key={course.id}
                                 className={`block text-[10px] font-medium truncate ${
-                                  isToday || isSelected ? "text-white" : "text-gray-700"
+                                  isToday ? "text-white" : "text-gray-700"
                                 }`}
                               >
                                 {course.title}
@@ -1140,7 +1133,7 @@ export default function PlanningPage() {
                             {coursesForDate.length > 3 && (
                               <span
                                 className={`block text-[10px] ${
-                                  isToday || isSelected ? "text-white/80" : "text-gray-500"
+                                  isToday ? "text-white/80" : "text-gray-500"
                                 }`}
                               >
                                 +{coursesForDate.length - 3} autres

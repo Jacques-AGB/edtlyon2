@@ -11,7 +11,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-01T12:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Relire les notions de classes et d’objets en PHP avancé.",
@@ -29,7 +29,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-01T16:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Implémenter un mini système d’authentification en PHP.",
@@ -47,7 +47,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-02T17:00:00",
     colorTailwind: "bg-sky-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Préparer un court exposé sur un cas réel de champ d’application multimédia.",
@@ -65,7 +65,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-02T20:00:00",
     colorTailwind: "bg-rose-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Lire les textes concernant le droit d’auteur appliqué au numérique.",
@@ -83,7 +83,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-03T12:00:00",
     colorTailwind: "bg-sky-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Compléter la fiche de synthèse sur les exemples vus en cours.",
@@ -101,7 +101,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-03T16:00:00",
     colorTailwind: "bg-yellow-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Analyser l’ergonomie d’un site de votre choix et noter 5 points d’amélioration.",
@@ -119,7 +119,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-04T12:00:00",
     colorTailwind: "bg-purple-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Installer l’environnement mobile et créer un projet ‘Hello World’.",
@@ -137,7 +137,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-04T16:00:00",
     colorTailwind: "bg-orange-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Configurer un pare-feu simple et rédiger un court rapport.",
@@ -155,7 +155,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-05T12:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Implémenter un CRUD complet en PHP avec PDO.",
@@ -173,7 +173,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-05T16:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Ajouter la gestion des sessions et des rôles utilisateurs au projet.",
@@ -193,7 +193,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-08T12:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Optimiser les requêtes SQL du projet PHP.",
@@ -211,7 +211,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-08T16:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Revoir les promesses et réécrire un code asynchrone avec async/await.",
@@ -229,7 +229,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-09T16:00:00",
     colorTailwind: "bg-yellow-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Produire un wireframe basse fidélité pour une interface responsive.",
@@ -247,7 +247,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-09T20:00:00",
     colorTailwind: "bg-rose-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Préparer un résumé d’une affaire judiciaire liée au numérique.",
@@ -265,7 +265,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-10T12:00:00",
     colorTailwind: "bg-indigo-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Définir une question de recherche et formuler une hypothèse.",
@@ -283,7 +283,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-11T12:00:00",
     colorTailwind: "bg-purple-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Ajouter une première interface avec navigation simple à l’application mobile.",
@@ -301,7 +301,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-11T16:00:00",
     colorTailwind: "bg-orange-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Mettre en place un script de sauvegarde automatique sur un serveur test.",
@@ -319,7 +319,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-12T12:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Créer un composant dynamique manipulant le DOM sans framework.",
@@ -337,7 +337,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2025-12-12T16:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Introduire un système de modules ES6 dans votre projet JS.",
@@ -357,7 +357,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-05T12:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Mettre en place une API front-end simple avec fetch et gestion d’erreurs.",
@@ -375,7 +375,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-05T16:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Refactoriser un script JS pour le rendre plus modulaire et testable.",
@@ -393,7 +393,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-06T17:00:00",
     colorTailwind: "bg-indigo-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Commencer la bibliographie en trouvant au moins 3 articles scientifiques.",
@@ -411,7 +411,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-06T20:00:00",
     colorTailwind: "bg-rose-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Rédiger une note sur les conditions générales d’utilisation d’un site web.",
@@ -429,7 +429,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-07T12:00:00",
     colorTailwind: "bg-fuchsia-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Créer une animation créative simple en utilisant un canvas ou une librairie graphique.",
@@ -447,7 +447,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-07T16:00:00",
     colorTailwind: "bg-teal-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Préparer un pitch de 3 minutes pour un projet multimédia devant le groupe.",
@@ -465,7 +465,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-08T12:00:00",
     colorTailwind: "bg-fuchsia-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Expérimenter avec une palette de couleurs et documenter les choix créatifs.",
@@ -483,7 +483,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-08T18:00:00",
     colorTailwind: "bg-orange-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Mettre en place la supervision de base (logs, monitoring) sur une VM.",
@@ -501,7 +501,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-09T12:00:00",
     colorTailwind: "bg-fuchsia-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Réviser le code créatif développé en séance et commenter chaque section.",
@@ -519,7 +519,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-09T16:00:00",
     colorTailwind: "bg-purple-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Ajouter une fonctionnalité de liste avec persistance locale dans l’app mobile.",
@@ -539,7 +539,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-12T12:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Mettre en place une petite application SPA sans framework.",
@@ -557,7 +557,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-12T16:00:00",
     colorTailwind: "bg-emerald-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Ajouter un système de routing côté client à votre SPA.",
@@ -575,7 +575,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-13T20:00:00",
     colorTailwind: "bg-rose-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Analyser les mentions légales d’un site existant et vérifier leur conformité.",
@@ -593,7 +593,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-14T12:00:00",
     colorTailwind: "bg-purple-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Implémenter la navigation entre 2–3 écrans avec passage de paramètres.",
@@ -611,7 +611,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-14T16:00:00",
     colorTailwind: "bg-teal-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Préparer un feedback structuré sur une présentation d’un camarade (réel ou simulé).",
@@ -629,7 +629,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-15T12:00:00",
     colorTailwind: "bg-purple-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Intégrer une API distante (ex. météo) dans l’application mobile.",
@@ -647,7 +647,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-15T17:00:00",
     colorTailwind: "bg-orange-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Configurer des droits utilisateurs et documenter la politique d’accès.",
@@ -665,7 +665,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-16T12:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Sécuriser les formulaires du projet PHP (CSRF, XSS, validation côté serveur).",
@@ -683,7 +683,7 @@ export const MOCK_COURSES: Course[] = [
     endTime: "2026-01-16T16:00:00",
     colorTailwind: "bg-lime-100",
     tdGroup: "TD001",
-    moodleUrl: "",
+    moodleUrl: "https://moodle.univ-lyon2.fr/course/view.php?id=33828",
     homework: [
       {
         task: "Préparer une courte démonstration finale de votre application PHP.",

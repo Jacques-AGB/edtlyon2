@@ -346,10 +346,23 @@ export default function PlanningPage() {
     });
   };
 
-  const navigateWeek = (direction: "prev" | "next") => {
-    setSelectedDate((prev) =>
-      addDays(prev, direction === "prev" ? -7 : 7)
-    );
+  const navigateDay = (direction: "prev" | "next") => {
+    // Move one business day forward/backward, skipping weekends
+    setSelectedDate((prev) => {
+      const step = direction === "prev" ? -1 : 1;
+      let candidate = addDays(prev, step);
+      const dow = candidate.getDay(); // Sunday=0, Monday=1, ..., Saturday=6
+
+      if (dow === 6) {
+        // Landed on Saturday: jump to Friday (prev) or Monday (next)
+        candidate = addDays(candidate, direction === "prev" ? -1 : 2);
+      } else if (dow === 0) {
+        // Landed on Sunday: jump to Friday (prev) or Monday (next)
+        candidate = addDays(candidate, direction === "prev" ? -2 : 1);
+      }
+
+      return candidate;
+    });
   };
 
   const getMonthName = () => {
@@ -582,7 +595,7 @@ export default function PlanningPage() {
                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </button>
-              <button className="p-2" aria-label="Notifications">
+              {/* <button className="p-2" aria-label="Notifications">
                 <svg
                   className="w-5 h-5 text-gray-700"
                   fill="none"
@@ -594,7 +607,7 @@ export default function PlanningPage() {
                 >
                   <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
-              </button>
+              </button> */}
             </div>
           </div>
         </header>
@@ -783,9 +796,9 @@ export default function PlanningPage() {
           {/* DateNavigator - Sélecteur de Jour/Date */}
           {mode !== "Mois" && (
           <div className="flex items-center px-4 py-3 bg-white border-b border-gray-200 gap-3">
-            {mode === "Semaine" && (
+            {mode !== "Mois" && (
               <button
-                onClick={() => navigateWeek("prev")}
+                onClick={() => navigateDay("prev")}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                 aria-label="Semaine précédente"
               >
@@ -838,9 +851,9 @@ export default function PlanningPage() {
               })}
             </div>
 
-            {mode === "Semaine" && (
+            {mode !== "Mois" && (
               <button
-                onClick={() => navigateWeek("next")}
+                onClick={() => navigateDay("next")}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                 aria-label="Semaine suivante"
               >

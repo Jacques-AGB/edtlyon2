@@ -796,81 +796,76 @@ export default function PlanningPage() {
           {/* DateNavigator - Sélecteur de Jour/Date */}
           {mode !== "Mois" && (
           <div className="flex items-center px-4 py-3 bg-white border-b border-gray-200 gap-3">
-            {mode !== "Mois" && (
-              <button
-                onClick={() => navigateDay("prev")}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label="Semaine précédente"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M15 19l-7-7 7-7"></path>
-                </svg>
-              </button>
-            )}
+  <button
+    onClick={() => navigateDay("prev")}
+    className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+    aria-label="Semaine précédente"
+  >
+    <svg
+      className="w-5 h-5 text-gray-700"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path d="M15 19l-7-7 7-7"></path>
+    </svg>
+  </button>
 
-            <div className="flex items-center justify-around flex-1">
-              {weekDates.map((date, index) => {
-                const isActive = isSameDayDate(date, selectedDate);
-                // Le surlignage rouge ne s'applique que en mode "Jour"
-                const shouldHighlight = isActive && mode === "Jour";
-                const dayLabel = format(date, "EEEEE", { locale: fr }); // L, M, M, J, V
-                const dayNumber = format(date, "d", { locale: fr });
-                
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedDate(date)}
-                    className={`flex flex-col items-center ${
-                      shouldHighlight ? "bg-red-500 text-white" : "text-gray-500"
-                    } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
-                  >
-                    <span
-                      className={`text-sm font-medium ${
-                        shouldHighlight ? "text-white" : "text-gray-700"
-                      }`}
-                    >
-                      {dayLabel}
-                    </span>
-                    <span
-                      className={`text-xs mt-1 ${
-                        shouldHighlight ? "text-white" : "text-gray-500"
-                      }`}
-                    >
-                      {dayNumber}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+  <div className="flex items-center justify-around flex-1">
+    {weekDates.map((date, index) => {
+      const isActive = isSameDayDate(date, selectedDate);
+      const shouldHighlight = isActive && mode === "Jour";
+      const dayLabel = format(date, "EEEEE", { locale: fr });
+      const dayNumber = format(date, "d", { locale: fr });
 
-            {mode !== "Mois" && (
-              <button
-                onClick={() => navigateDay("next")}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label="Semaine suivante"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M9 5l7 7-7 7"></path>
-                </svg>
-              </button>
-            )}
-          </div> )}
+      return (
+        <button
+          key={index}
+          onClick={() => setSelectedDate(date)}
+          className={`flex flex-col items-center ${
+            shouldHighlight ? "bg-red-500 text-white" : "text-gray-500"
+          } rounded-lg px-3 py-2 min-w-[40px] transition-colors`}
+        >
+          <span
+            className={`text-sm font-medium ${
+              shouldHighlight ? "text-white" : "text-gray-700"
+            }`}
+          >
+            {dayLabel}
+          </span>
+          <span
+            className={`text-xs mt-1 ${
+              shouldHighlight ? "text-white" : "text-gray-500"
+            }`}
+          >
+            {dayNumber}
+          </span>
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    onClick={() => navigateDay("next")}
+    className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+    aria-label="Semaine suivante"
+  >
+    <svg
+      className="w-5 h-5 text-gray-700"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path d="M9 5l7 7-7 7"></path>
+    </svg>
+  </button>
+</div> )}
 
           {/* Corps Principal - Trois vues différentes */}
           {mode === "Jour" && (
